@@ -1,0 +1,49 @@
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+app/media/
+*secret_key.txt*
+*ldap_pw.txt*
+*email_pw.txt*
+
+### macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+app/.env
+
+## IDE
+.idea/
+.idea
+
+## VSCode
+.vscode/
+
+## Django
+migrations/
+app/static/
+
+## docker
+docker/volumes/
+
+## test_data
+data_etc
+*.zip
+
+compiled_mibs
+compiled_mibs_2
+compiled_mibs_3
