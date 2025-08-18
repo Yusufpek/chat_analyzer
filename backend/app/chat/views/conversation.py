@@ -1,28 +1,63 @@
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
 from common.base.base_api_view import BaseAPIView, BaseListAPIView, ResponseStatus
-from chat.serializers.conversation import ChatMessageSerializer
-from chat.models.conversation import ChatMessage
+from chat.serializers.conversation import ChatMessageSerializer, ConversationSerializer
+from chat.models.conversation import ChatMessage, Conversation
 
 
-class ConversationListAPIView(BaseAPIView):
+class ConversationListAPIView(BaseListAPIView):
     """
     API view to list conversations.
     """
 
-    def get_request(self, request):
-        # Logic to retrieve and return conversations
-        # This is a placeholder implementation
-        return ResponseStatus.SUCCESS, {"conversations": []}
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = ConversationSerializer
+
+    def get_queryset(self):
+        return Conversation.objects.filter(user=self.request.user).order_by(
+            "-created_at"
+        )
 
 
-class ConversationDetailAPIView(BaseListAPIView):
+class ConversationDetailAPIView(BaseAPIView):
     """
     API view to retrieve a specific conversation by ID.
     """
 
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_request(self, request, *args, **kwargs):
+        conversation_id = kwargs.get("conversation_id")
+        conversation = Conversation.objects.filter(
+            id=conversation_id, user=self.request.user
+        ).first()
+        if not conversation:
+            return ResponseStatus.NOT_FOUND, {"error": "Conversation not found"}
+        last_message = (
+            ChatMessage.objects.filter(conversation_id=conversation_id)
+            .order_by("-created_at")
+            .first()
+        )
+        return ResponseStatus.SUCCESS, ConversationSerializer(
+            conversation, context={"last_message": last_message}
+        ).data
+
+
+class ConversationMessagesAPIView(BaseListAPIView):
+    """
+    API view to retrieve messages for a specific conversation by ID.
+    """
+
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     serializer_class = ChatMessageSerializer
 
     def get_queryset(self):
-        chat_id = self.kwargs.get("chat_id")
-        return ChatMessage.objects.filter(conversation_id=chat_id).order_by(
-            "created_at"
-        )
+        conversation_id = self.kwargs.get("conversation_id")
+        return ChatMessage.objects.filter(
+            conversation_id=conversation_id, conversation__user=self.request.user
+        ).order_by("created_at")

@@ -9,10 +9,23 @@ class ChatMessageSerializer(serializers.ModelSerializer):
             "id",
             "content",
             "created_at",
-            "saved_at",
-            "modified_at",
             "sender_type",
-            "avatar_url",
-            "analysis_result",
             "conversation",
         ]
+
+
+class ConversationSerializer(serializers.Serializer):
+    def to_representation(self, instance):
+        last_message = self.context.get("last_message")
+        return {
+            "id": instance.id,
+            "created_at": instance.created_at,
+            "assistant_avatar_url": instance.assistant_avatar_url,
+            "source": instance.source,
+            "chat_type": instance.chat_type,
+            "status": instance.status,
+            "agent_id": instance.agent_id,
+            "last_message": ChatMessageSerializer(last_message).data
+            if last_message
+            else None,
+        }
