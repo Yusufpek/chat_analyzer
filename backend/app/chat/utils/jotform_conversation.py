@@ -1,8 +1,14 @@
 import json
 from chat.models.conversation import ChatMessage, Conversation
+from common.utils.jotform_api import JotFormAPIService
 
 
-def get_chat_messages(service, agent_id, chat_id, chat_message_ids=None):
+def get_chat_messages(
+    service: JotFormAPIService,
+    agent_id,
+    chat_id,
+    chat_message_ids=None,
+):
     if chat_message_ids is None:
         chat_message_ids = ChatMessage.objects.values_list("id", flat=True)
 
@@ -37,7 +43,12 @@ def get_chat_messages(service, agent_id, chat_id, chat_message_ids=None):
     return chat_messages
 
 
-def get_conversations(service, agent_id, user_id, conversation_ids=None):
+def get_conversations(
+    service: JotFormAPIService,
+    agent_id,
+    user_id,
+    conversation_ids=None,
+):
     if conversation_ids is None:
         conversation_ids = Conversation.objects.values_list("id", flat=True)
 
