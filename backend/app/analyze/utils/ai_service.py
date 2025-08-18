@@ -21,11 +21,15 @@ class AIService:
 
     def send_request(self, data):
         log = AIServiceLog.objects.create(
-            service_engine=self.engine, request_payload=data
+            service_engine=self.engine,
+            request_payload=data,
+            endpoint=self.base_url,
+            http_method="POST",
+            status=AIServiceLog.PENDING,
         )
         response = requests.post(self.base_url, headers=self.headers, json=data)
 
-        if response.status_code != 200:
+        if response.status_code not in [200, 201]:
             log.status = AIServiceLog.ERROR
             log.status_code = response.status_code
             try:
