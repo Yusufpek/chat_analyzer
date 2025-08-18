@@ -1,5 +1,3 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.parsers import JSONParser
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
@@ -8,9 +6,6 @@ from common.models.connection import Connection
 
 
 class ConnectionView(BaseAPIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def post_request(self, request, *args, **kwargs):
         """
         Handles the creation of a new connection.

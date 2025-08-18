@@ -1,5 +1,3 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import BasicAuthentication
 from common.base.base_api_view import BaseAPIView, BaseListAPIView, ResponseStatus
 from chat.serializers.conversation import ChatMessageSerializer, ConversationSerializer
 from chat.models.conversation import ChatMessage, Conversation
@@ -9,9 +7,6 @@ class ConversationListAPIView(BaseListAPIView):
     """
     API view to list conversations.
     """
-
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
 
     serializer_class = ConversationSerializer
 
@@ -25,9 +20,6 @@ class ConversationDetailAPIView(BaseAPIView):
     """
     API view to retrieve a specific conversation by ID.
     """
-
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get_request(self, request, *args, **kwargs):
         conversation_id = kwargs.get("conversation_id")
@@ -50,9 +42,6 @@ class ConversationMessagesAPIView(BaseListAPIView):
     """
     API view to retrieve messages for a specific conversation by ID.
     """
-
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
 
     serializer_class = ChatMessageSerializer
 
