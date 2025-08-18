@@ -4,7 +4,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
-from common.serializers.user import UserSerializer, UserLoginSerializer
+from common.serializers.user import UserRegisterSerializer, UserLoginSerializer
 
 
 class UserRegisterAPIView(BaseAPIView):
@@ -13,7 +13,7 @@ class UserRegisterAPIView(BaseAPIView):
     """
 
     permission_classes = []
-    serializer_class = UserSerializer
+    serializer_class = UserRegisterSerializer
 
     def post_request(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -45,6 +45,20 @@ class LoginView(BaseAPIView):
 
     def clear_payload(self, request):
         del request.data["password"]
+
+
+class UserDetailView(BaseAPIView):
+    """
+    An endpoint to retrieve the details of the authenticated user.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserRegisterSerializer
+
+    def get_request(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.get_serializer(user)
+        return ResponseStatus.SUCCESS, {"content": serializer.data}
 
 
 class LoginRefreshView(TokenRefreshView):
