@@ -18,6 +18,17 @@ class AIServiceLog(models.Model):
     ]
 
     status_code = models.IntegerField(null=True, blank=True)
+    endpoint = models.CharField(max_length=255, null=True, blank=True)
+    http_method = models.CharField(
+        max_length=10,
+        choices=[
+            ("GET", "GET"),
+            ("POST", "POST"),
+            ("PUT", "PUT"),
+            ("DELETE", "DELETE"),
+        ],
+        default="POST",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     service_engine = models.CharField(
         max_length=50,
