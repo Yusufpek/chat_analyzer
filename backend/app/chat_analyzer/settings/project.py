@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
 ]
 
 AUTH_USER_MODEL = "common.User"
@@ -29,6 +30,9 @@ ASGI_APPLICATION = "chat_analyzer.asgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5174",
+]
 
 SETTINGS_PATH = path.dirname(path.abspath(__file__))
 

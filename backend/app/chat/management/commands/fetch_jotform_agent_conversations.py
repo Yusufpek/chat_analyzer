@@ -1,11 +1,10 @@
 from django.core.management.base import BaseCommand
 
 from common.utils.jotform_api import JotFormAPIService
-from common.models.user import User
 from common.models.connection import Connection
 from common.constants.sources import SOURCE_JOTFORM
 from chat.models.conversation import Conversation
-from backend.app.chat.utils.jotform_conversation import get_conversations
+from chat.utils.jotform_conversation import get_conversations
 
 
 class Command(BaseCommand):
@@ -20,7 +19,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        user = User.objects.first()
         connection_id = options["connection_id"]
         connection = Connection.objects.filter(
             connection_type=SOURCE_JOTFORM, id=connection_id
@@ -29,6 +27,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("No JotForm connection found for user."))
             return
 
+        user = connection.user
         config = connection.config
         agent_ids = [agent.get("agent_id") for agent in config.get("agents", [])]
 

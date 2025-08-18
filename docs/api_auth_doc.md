@@ -1,6 +1,53 @@
 # Authentication API Documentation
 
-## 1. Login
+## 1. Register
+
+**Endpoint:** `/api/auth/register/`  
+**Method:** `POST`  
+**Description:** Registers a new user and returns JWT access and refresh tokens.
+
+### Request Body
+
+```json
+{
+  "username": "your_username",
+  "password": "your_password",
+  "email": "your_email@example.com",
+  "first_name": "YourFirstName",
+  "last_name": "YourLastName"
+}
+```
+
+### Response Body
+
+```json
+{
+  "content": {
+    "pk": 1,
+    "username": "your_username",
+    "email": "your_email@example.com",
+    "first_name": "YourFirstName",
+    "last_name": "YourLastName",
+    "profile_image": null,
+    "tokens": {
+      "refresh": "<refresh_token>",
+      "access": "<access_token>"
+    }
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Validation error details"
+}
+```
+
+---
+
+## 2. Login
 
 **Endpoint:** `/api/auth/login/`  
 **Method:** `POST`  
@@ -32,7 +79,9 @@
 }
 ```
 
-## 2. Token Refresh
+---
+
+## 3. Token Refresh
 
 **Endpoint:** `/api/auth/refresh/`  
 **Method:** `POST`  
@@ -62,7 +111,9 @@
 }
 ```
 
-## 3. Logout
+---
+
+## 4. Logout
 
 **Endpoint:** `/api/auth/logout/`  
 **Method:** `POST`  
@@ -72,8 +123,7 @@
 
 ```json
 {
-  "refresh": "<refresh_token>",
-  "username": "your_username"
+  "refresh_token": "<refresh_token>"
 }
 ```
 
@@ -81,7 +131,7 @@
 
 ```json
 {
-  "message": "Logout successful"
+  "detail": "Successfully logged out."
 }
 ```
 
@@ -89,6 +139,14 @@
 
 ```json
 {
-  "error": "Invalid token or username"
+  "error": "Refresh token required."
+}
+```
+
+or
+
+```json
+{
+  "error": "Invalid or expired refresh token."
 }
 ```
