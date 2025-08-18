@@ -29,7 +29,7 @@ curl -X GET http://localhost:8808/api/chat/conversations/ \
     "created_at": "2025-08-18T10:00:00Z",
     "assistant_avatar_url": "https://example.com/avatar.png",
     "source": "JotForm",
-    "chat_type": "support",
+    "chat_type": "ai2u",
     "status": "active",
     "agent_id": "agent42",
     "last_message": {
