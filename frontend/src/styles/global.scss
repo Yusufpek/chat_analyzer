@@ -1,0 +1,141 @@
+@import './colors.css';
+
+* { box-sizing: border-box; }
+html, body, #root { 
+  height: 100%; 
+  margin: 0; 
+  background: linear-gradient(180deg, #ffffff 0%, #faf8ff 25%, #f5f0ff 50%, #f0e8ff 75%, #ebe0ff 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  background: linear-gradient(180deg, #ffffff 0%, #faf8ff 25%, #f5f0ff 50%, #f0e8ff 75%, #ebe0ff 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+}
+
+
+body::before {
+  left: -200px;
+  background: radial-gradient(circle, rgba(210, 0, 211, 0.25) 0%, rgba(182, 237, 67, 0.15) 30%, rgba(255, 255, 255, 0.1) 60%, transparent 100%);
+  animation: floatLeft 12s ease-in-out infinite;
+  box-shadow: 0 0 100px rgba(210, 0, 211, 0.3);
+}
+
+body::after {
+  right: -200px;
+  background: radial-gradient(circle, rgba(182, 237, 67, 0.25) 0%, rgba(210, 0, 211, 0.15) 30%, rgba(255, 255, 255, 0.1) 60%, transparent 100%);
+  animation: floatRight 15s ease-in-out infinite reverse;
+  box-shadow: 0 0 100px rgba(182, 237, 67, 0.3);
+}
+
+@keyframes floatLeft {
+  0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+  25% { transform: translateY(-30px) scale(1.15) rotate(2deg); }
+  50% { transform: translateY(-50px) scale(1.2) rotate(0deg); }
+  75% { transform: translateY(-20px) scale(1.1) rotate(-2deg); }
+}
+
+@keyframes floatRight {
+  0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+  25% { transform: translateY(30px) scale(1.1) rotate(-2deg); }
+  50% { transform: translateY(50px) scale(1.2) rotate(0deg); }
+  75% { transform: translateY(20px) scale(1.15) rotate(2deg); }
+}
+
+nav { padding: 12px; border-bottom: 1px solid #eee; }
+section { padding: 16px; }
+input { padding: 8px 10px; }
+
+/* File Upload List Custom Styling */
+[data-scope="file-upload"][data-part="list"] {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+[data-scope="file-upload"][data-part="item"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin-bottom: 8px;
+  background-color: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+[data-scope="file-upload"][data-part="item"]:hover {
+  border-color: #D200D3;
+  box-shadow: 0 2px 8px rgba(210, 0, 211, 0.1);
+}
+
+/* Make text black */
+[data-scope="file-upload"][data-part="name"],
+[data-scope="file-upload"][data-part="size-text"],
+[data-scope="file-upload"] [data-part="name"],
+[data-scope="file-upload"] [data-part="size-text"],
+[data-scope="file-upload"] span,
+[data-scope="file-upload"] div {
+  color: #000000 !important;
+  font-weight: 500 !important;
+}
+
+/* Delete button styling */
+[data-scope="file-upload"][data-part="item"] .delete-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f1f5f9;
+  border-radius: 50%;
+  color: #615568;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  border: none;
+  outline: none;
+}
+
+[data-scope="file-upload"][data-part="item"] .delete-btn:hover {
+  background-color: #FFD8FF;
+  color: #D200D3;
+}
+
+[data-scope="file-upload"][data-part="item"] .delete-btn:active {
+  background-color: #D200D3;
+  color: white;
+}
+
+/* Additional text color overrides for file upload */
+[data-scope="file-upload"] * {
+  color: #000000 !important;
+}
+
+/* But keep delete button text as intended */
+[data-scope="file-upload"] .delete-btn {
+  color: #615568 !important;
+}
+
+[data-scope="file-upload"] .delete-btn:hover {
+  color: #D200D3 !important;
+}
+
+[data-scope="file-upload"] .delete-btn:active {
+  color: white !important;
+}

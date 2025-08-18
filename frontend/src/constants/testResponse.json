@@ -1,0 +1,117 @@
+{
+  "responseCode": 200,
+  "message": "success",
+  "content": {
+      "01989e859ba77abc911d83ac000fe22c58cf": {
+          "chatHistory": [
+              {
+                  "uuid": "01989e85b0237526b27818c704aef0611cc6",
+                  "chat_id": "01989e859ba77abc911d83ac000fe22c58cf",
+                  "agent_id": "01989e1b648077d78a5f89a9a75ec75030c4",
+                  "form_id": "0",
+                  "question_id": null,
+                  "content": "Hi there! \ud83d\udc4b I'm **Agent**. I can provide you with information on websites created using create-react-app. How can I assist you today?",
+                  "action": "[]",
+                  "type": "ASSISTANT",
+                  "answer_type": null,
+                  "status": "ACTIVE",
+                  "created_at": "2025-08-12 09:43:38.2758",
+                  "updated_at": "2025-08-12 09:43:38",
+                  "avatar_url": "https:\/\/cdn.jotfor.ms\/assets\/agent-avatars\/avatar_icon_821.png",
+                  "props": {
+                      "x_ai_uuid": "01989e4e-fe31-714a-8cbe-4c17bffc926f"
+                  }
+              },
+              {
+                  "uuid": "01989e85b07a7191964d6631cba55e6694a3",
+                  "chat_id": "01989e859ba77abc911d83ac000fe22c58cf",
+                  "agent_id": "01989e1b648077d78a5f89a9a75ec75030c4",
+                  "form_id": "0",
+                  "question_id": null,
+                  "content": "ping",
+                  "action": null,
+                  "type": "USER",
+                  "answer_type": null,
+                  "status": "ACTIVE",
+                  "created_at": "2025-08-12 09:43:38.3623",
+                  "updated_at": "2025-08-12 09:43:38",
+                  "avatar_url": "https:\/\/lh3.googleusercontent.com\/a\/ACg8ocLynaCASjmmg7DEMPAJUzRZ0AB_3zsFr48CH3oSvOVpbDvoSQ=s96-c",
+                  "props": {
+                      "answersDocumentPath": null
+                  }
+              },
+              {
+                  "uuid": "01989e85b33b7d6cab1cd22fce42cb17bce5",
+                  "chat_id": "01989e859ba77abc911d83ac000fe22c58cf",
+                  "agent_id": "01989e1b648077d78a5f89a9a75ec75030c4",
+                  "form_id": "0",
+                  "question_id": null,
+                  "content": "Hello! I'm here and ready to help you. What can I assist you with today?",
+                  "action": "[]",
+                  "type": "ASSISTANT",
+                  "answer_type": null,
+                  "status": "ACTIVE",
+                  "created_at": "2025-08-12 09:43:39.0680",
+                  "updated_at": "2025-08-12 09:43:39",
+                  "avatar_url": "https:\/\/cdn.jotfor.ms\/assets\/agent-avatars\/avatar_icon_821.png",
+                  "props": {
+                      "answersDocumentPath": null,
+                      "memoizedCallCount": "0",
+                      "parallelCallCount": "1",
+                      "sequentialCallCount": "1",
+                      "uncachedSequentialCallCount": "1",
+                      "x_ai_uuid": "01989e85-b0de-793b-aaa0-2b81c53ecfb1"
+                  }
+              },
+              {
+                  "uuid": "01989e85c12c7e8f9f332dca407b57af03de",
+                  "chat_id": "01989e859ba77abc911d83ac000fe22c58cf",
+                  "agent_id": "01989e1b648077d78a5f89a9a75ec75030c4",
+                  "form_id": "0",
+                  "question_id": null,
+                  "content": "ping",
+                  "action": null,
+                  "type": "USER",
+                  "answer_type": null,
+                  "status": "ACTIVE",
+                  "created_at": "2025-08-12 09:43:42.6371",
+                  "updated_at": "2025-08-12 09:43:42",
+                  "avatar_url": "https:\/\/lh3.googleusercontent.com\/a\/ACg8ocLynaCASjmmg7DEMPAJUzRZ0AB_3zsFr48CH3oSvOVpbDvoSQ=s96-c",
+                  "props": {
+                      "answersDocumentPath": null
+                  }
+              },
+              {
+                  "uuid": "01989e85c3b575a9bf17e1dcdeb6f8f6dc2f",
+                  "chat_id": "01989e859ba77abc911d83ac000fe22c58cf",
+                  "agent_id": "01989e1b648077d78a5f89a9a75ec75030c4",
+                  "form_id": "0",
+                  "question_id": null,
+                  "content": "Hello again! How can I assist you further?",
+                  "action": "[]",
+                  "type": "ASSISTANT",
+                  "answer_type": null,
+                  "status": "ACTIVE",
+                  "created_at": "2025-08-12 09:43:43.2855",
+                  "updated_at": "2025-08-12 09:43:43",
+                  "avatar_url": "https:\/\/cdn.jotfor.ms\/assets\/agent-avatars\/avatar_icon_821.png",
+                  "props": {
+                      "answersDocumentPath": null,
+                      "memoizedCallCount": "0",
+                      "parallelCallCount": "1",
+                      "sequentialCallCount": "1",
+                      "uncachedSequentialCallCount": "1",
+                      "x_ai_uuid": "01989e85-c1af-732d-a5e8-96012abcae90"
+                  }
+              }
+          ],
+          "submissionID": "",
+          "voiceFile": "",
+          "recordDelayTime": "",
+          "recordDuration": "",
+          "platform": "embed"
+      }
+  },
+  "duration": "119.36ms",
+  "info": null
+}

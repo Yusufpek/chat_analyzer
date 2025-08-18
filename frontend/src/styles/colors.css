@@ -1,0 +1,153 @@
+/* Color Styles */
+
+.ca-color-primary {
+  color: #0A0807;
+}
+
+.ca-color-primary-hover:hover {
+  color: #0A0807;
+}
+
+.ca-bg-primary {
+  background-color: rgba(10, 8, 7, var(--bg-opacity, 1));
+}
+
+.ca-color-secondary {
+  color: #B6ED43;
+}
+
+.ca-color-secondary-hover:hover {
+  color: #B6ED43;
+}
+
+.ca-bg-secondary {
+  background-color: rgba(182, 237, 67, var(--bg-opacity, 1));
+}
+
+.ca-color-tertiary {
+  color: #D200D3;
+}
+
+.ca-color-tertiary-hover:hover {
+  color: #D200D3;
+}
+
+.ca-bg-tertiary {
+  background-color: rgba(210, 0, 211, var(--bg-opacity, 1));
+}
+
+.ca-fill-white-opacity-80 {
+  fill: #FFFFFF;
+  fill-opacity: 0.8;
+}
+
+.ca-bg-light-pink {
+  background-color: #FFF6FF;
+}
+
+.ca-bg-gray-gradient {
+  background: linear-gradient(180deg, rgba(217, 217, 217, 0.00) 0%, #737373 100%);
+}
+
+.hover-color-tertiary:hover {
+  color: #D200D3;
+}
+
+.ca-border-tertiary {
+  border: 1px solid #D200D3;
+}
+
+.ca-border-gray {
+  border: 1px solid #D3D3D3;
+}
+
+.ca-border-bottom-tertiary {
+  border-bottom: 4px solid #D200D3;
+}
+
+.ca-border-bottom-gray {
+  border-bottom: 1px solid #D3D3D3;
+}
+
+.ca-border-top-gray {
+  border-top: 1px solid #D3D3D3;
+}
+
+.ca-border-right-gray {
+  border-right: 1px solid #D3D3D3;
+}
+
+.ca-border-left-gray {
+  border-left: 1px solid #D3D3D3;
+}
+
+.ca-color-quaternary {
+  color: #615568;
+}
+
+.ca-bg-quaternary {
+  background-color: #615568;
+}
+
+.ca-bg-quaternary-opacity-20 {
+  background-color: #61556830;
+}
+
+.ca-color-placeholder::placeholder {
+  color: #615568;
+}
+
+.ca-color-quinary {
+  color: #C6A7C2;
+}
+
+.ca-bg-quinary {
+  background-color: #C6A7C2;
+}
+
+.ca-color-senary {
+  color: #621CB1;
+}
+
+.ca-color-red {
+  color: #FF0048;
+}
+
+.ca-color-green {
+  color: #77AB0C;
+}
+
+.ca-bg-senary {
+  background-color: #621CB1;
+}
+
+.ca-notice-text {
+  color: #8C8C8C;
+}
+
+.ca-light-gray {
+  color: #E1DFE0;
+}
+
+.ca-bg-light-gray {
+  background-color: #E1DFE0;
+}
+
+.active-link { 
+  position: relative; 
+  display: flex; 
+  justify-content: center; 
+}
+
+.active-link:after {
+  content: "";
+  width: 80%;
+  height: 2px;
+  background-color: #0A0807;
+  position: absolute;
+  bottom: 0;
+}
+
+.active-link:hover:after {
+  background-color: #D200D3;
+}
