@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from common.utils.jotform_api import JotFormAPIService
 from common.models.user import User
 from chat.models.conversation import ChatMessage, Conversation
-from chat.utils.conversation import get_chat_messages
+from backend.app.chat.utils.jotform_conversation import get_chat_messages
 
 
 class Command(BaseCommand):

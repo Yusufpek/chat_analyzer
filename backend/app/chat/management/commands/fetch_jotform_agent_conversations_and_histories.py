@@ -5,7 +5,7 @@ from common.models.user import User
 from common.models.connection import Connection
 from common.constants.sources import SOURCE_JOTFORM
 from chat.models.conversation import Conversation, ChatMessage
-from chat.utils.conversation import get_chat_messages, get_conversations
+from backend.app.chat.utils.jotform_conversation import get_chat_messages, get_conversations
 
 
 class Command(BaseCommand):
