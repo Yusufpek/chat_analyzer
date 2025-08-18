@@ -7,7 +7,6 @@ import AboutUs from '../containers/AboutUs';
 import Profile from '../containers/Profile';
 import Analyze from '../containers/Analyze/Analyze';
 // AnalyzeMain is now rendered inside Analyze wrapper
-import Conversations from '../containers/Conversations';
 
 const getRoutes = () => [
   {
