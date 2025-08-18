@@ -9,8 +9,11 @@
 
 #### Authentication
 
-- **Authentication Classes**: `BasicAuthentication`
-- **Permission Classes**: `IsAuthenticated`
+- **Authentication Classes**: `JWTAuthentication`
+- **Header**:
+  ```
+  Authorization: Bearer <access_token>
+  ```
 
 #### Request Body
 
@@ -25,7 +28,7 @@
 }
 ```
 
-#### Response
+#### Success Response
 
 ```json
 {
@@ -44,9 +47,9 @@
 }
 ```
 
-Status: 201 Created (if the connection is successfully created)
+Status: 201 Created
 
-### Error Response
+#### Error Response (Duplicate)
 
 ```json
 {
@@ -54,7 +57,91 @@ Status: 201 Created (if the connection is successfully created)
 }
 ```
 
-Status: 400 Bad Request (if the connection already exists)
+Status: 409 Conflict
+
+#### Error Response (Validation)
+
+```json
+{
+  "errors": {
+    "connection_type": ["This field is required."],
+    "api_key": ["This field is required."]
+  }
+}
+```
+
+Status: 400 Bad Request
+
+---
+
+### Endpoint: `/connection/`
+
+**Method**: `PUT`  
+**Description**: Updates an existing connection for the authenticated user.
+
+#### Authentication
+
+- **Authentication Classes**: `JWTAuthentication`
+- **Header**:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+#### Request Body
+
+```json
+{
+  "connection_type": "JotForm",
+  "api_key": "your-api-key",
+  "sync_interval": 180,
+  "config": {
+    "key": "new_value"
+  }
+}
+```
+
+#### Success Response
+
+```json
+{
+  "id": 1,
+  "connection_type": "JotForm",
+  "sync_interval": 180,
+  "api_key": "your-api-key",
+  "config": {
+    "key": "new_value"
+  },
+  "user": 1,
+  "created_at": "2025-08-15T12:00:00Z",
+  "modified_at": "2025-08-15T12:30:00Z"
+}
+```
+
+Status: 202 Accepted
+
+#### Error Response (Not Found)
+
+```json
+{
+  "errors": "Connection not found."
+}
+```
+
+Status: 404 Not Found
+
+#### Error Response (Validation)
+
+```json
+{
+  "errors": {
+    "sync_interval": ["Ensure this value is greater than or equal to 1."]
+  }
+}
+```
+
+Status: 400 Bad Request
+
+---
 
 ## 2. Ping API
 
@@ -66,7 +153,6 @@ Status: 400 Bad Request (if the connection already exists)
 #### Authentication
 
 - **Authentication Classes**: `None`
-- **Permission Classes**: `AllowAny`
 
 #### Response
 
@@ -78,6 +164,8 @@ Status: 400 Bad Request (if the connection already exists)
 
 Status: 200 OK
 
+---
+
 ## 3. JotForm API Check
 
 ### Endpoint: `/jotform-api-check/`
@@ -87,8 +175,13 @@ Status: 200 OK
 
 #### Authentication
 
-- **Authentication Classes**: `BasicAuthentication`
-- **Permission Classes**: `IsAuthenticated`
+- **Authentication Classes**: `JWTAuthentication`
+- **Header**:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+#### Success Response
 
 ```json
 {
@@ -155,3 +248,73 @@ Status: 200 OK
 ```
 
 Status: 200 OK
+
+#### Error Response
+
+```json
+{
+  "message": "Error initializing JotForm API service",
+  "error": "Some error message"
+}
+```
+
+Status: 400 Bad Request
+
+---
+
+### Endpoint: `/jotform-api-chat-check/`
+
+**Method**: `GET`  
+**Description**: Checks the chat history from JotForm API for a specific agent and chat.
+
+#### Authentication
+
+- **Authentication Classes**: `JWTAuthentication`
+- **Permission Classes**: `IsAuthenticated`
+
+#### Request Parameters
+
+- `agent_id` (required)
+- `chat_id` (required)
+
+#### Success Response
+
+```json
+{
+  "message": "JotForm API is reachable",
+  "content": {
+    "...": "chat history data"
+  }
+}
+```
+
+Status: 200 OK
+
+#### Error Response (Missing Parameters)
+
+```json
+{
+  "error": "Agent ID is required."
+}
+```
+
+or
+
+```json
+{
+  "error": "Chat ID is required."
+}
+```
+
+Status: 400 Bad Request
+
+#### Error Response (API Error)
+
+```json
+{
+  "message": "Error initializing JotForm API service",
+  "error": "Some error message"
+}
+```
+
+Status: 400 Bad Request

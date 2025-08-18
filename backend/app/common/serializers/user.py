@@ -1,10 +1,9 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 
 from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
-    groups_csv = serializers.CharField(required=False)
     email = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
@@ -15,16 +14,30 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "first_name",
             "last_name",
-            "is_staff",
-            "is_active",
+            "profile_image",
         ]
         extra_kwargs = {
             "first_name": {"required": True, "allow_blank": False},
             "last_name": {"required": True, "allow_blank": False},
-            "land_phone": {"allow_blank": True},
-            "cell_phone": {"allow_blank": True},
+            "email": {"allow_blank": True},
+            "username": {"required": True, "allow_blank": False},
+            "is_staff": {"required": False, "default": False},
+            "password": {"write_only": True},
         }
 
     def save(self, **kwargs):
         self.instance = super().save(**kwargs)
         return self.instance
+
+
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        print(data)
+        user = authenticate(**data)
+        print(user)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Incorrect Credentials")

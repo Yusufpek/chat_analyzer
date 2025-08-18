@@ -47,24 +47,6 @@ class JotFormAPIService:
         response_code = data.get("responseCode", response.status_code)
         return response_code, data
 
-    def get_agents(self):
-        """
-        Retrieve agents from JotForm API.
-        """
-
-        if not self.api_key:
-            return 100, {
-                "error": "No JotForm connection found for user.",
-            }
-
-        response = requests.get(
-            f"{JOTFORM_API_BASE_URL}/user/ai-agent/",
-            params={"apiKey": self.api_key},
-        )
-        data = response.json()
-        response_code = data.get("responseCode", response.status_code)
-        return response_code, data
-
     def get_agent_conversations(self, agent_id):
         """
         Retrieve chat history for a specific chat ID from JotForm API.

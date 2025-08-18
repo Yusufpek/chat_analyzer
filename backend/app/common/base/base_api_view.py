@@ -1,11 +1,15 @@
 from datetime import datetime
-from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .response import ResponseStatus, get_status_to_response, code_to_status
 
 
-class BaseAPIView(APIView):
+class BaseAPIView(generics.GenericAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get_request(self, request) -> dict:
         return ResponseStatus.SUCCESS, {"message": "Request processed successfully"}
 
