@@ -25,6 +25,8 @@ class Conversation(models.Model):
     created_at = models.DateTimeField(null=True, blank=True)
     saved_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    analysis_result = models.CharField(max_length=255, null=True, blank=True)
+    assistant_avatar_url = models.URLField(null=True, blank=True)
     source = models.CharField(
         max_length=255,
         choices=SOURCE_CHOICES,
@@ -72,12 +74,6 @@ class ChatMessage(models.Model):
         choices=SENDER_TYPE_CHOICES,
         default=SENDER_TYPE_USER,
     )
-    avatar_url = models.URLField(
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    analysis_result = models.CharField(max_length=255, null=True, blank=True)
 
     # FK
     conversation = models.ForeignKey(
