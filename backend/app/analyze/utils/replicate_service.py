@@ -31,3 +31,25 @@ class ReplicateService(AIService):
         if "error" in response:
             return {"error": response.get("error")}
         return response
+
+    def sentimental_analysis(self, chat_messages: str):
+        """
+        Performs sentiment analysis on the provided text using the Replicate service.
+        :param chat_messages: The text to analyze.
+        :return: A tuple containing the sentiment label and score.
+        :rtype: tuple(str, float)
+        """
+        if not chat_messages:
+            raise ValueError("No chat messages provided for sentiment analysis.")
+
+        self.version = "curt-park/sentiment-analysis:49d8f5a887de5668d4333ca1ed520002d2c52a1355d2fdb02a4d41850768a19a"
+        input_data = {
+            "text": chat_messages,
+        }
+        response = self.send_request(input_data)
+        parsed_response = self.parse_response(response)
+        if "label" in parsed_response and "score" in parsed_response:
+            return parsed_response["label"], parsed_response["score"]
+        raise ValueError(
+            "Unexpected response format from replicate sentiment analysis."
+        )
