@@ -7,6 +7,7 @@ def get_chat_messages(
     service: JotFormAPIService,
     agent_id,
     chat_id,
+    logger,
     chat_message_ids=None,
 ):
     if chat_message_ids is None:
@@ -17,7 +18,7 @@ def get_chat_messages(
         chat_id=chat_id,
     )
     if response_code != 200:
-        print(
+        logger.error(
             f"Failed to fetch conversation history: {content.get('error', 'Unknown error')}"
         )
         return
@@ -30,6 +31,8 @@ def get_chat_messages(
         if message_content["role"] not in ["user", "assistant"]:
             continue
         if message_content.get("function_call"):
+            continue
+        if not message_content.get("content"):
             continue
         chat_messages.append(
             ChatMessage(
@@ -47,6 +50,7 @@ def get_conversations(
     service: JotFormAPIService,
     agent_id,
     user_id,
+    logger,
     conversation_ids=None,
 ):
     if conversation_ids is None:
@@ -55,11 +59,11 @@ def get_conversations(
     response_code, content = service.get_agent_conversations(agent_id=agent_id)
     conversations = []
     if response_code != 200:
-        print(
+        logger.error(
             f"Failed to fetch conversations for agent {agent_id}: {content.get('error', 'Unknown error')}"
         )
         return
-    print(f"Fetched {len(content)} conversations for agent {agent_id}.")
+    logger.info(f"Fetched {len(content)} conversations for agent {agent_id}.")
     for conversation in content:
         chat_id = conversation.get("aiAgentChatID")
         if chat_id in conversation_ids:

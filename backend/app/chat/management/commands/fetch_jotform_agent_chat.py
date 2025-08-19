@@ -1,13 +1,13 @@
-from django.core.management.base import BaseCommand
-
+from common.base.base_command import CustomBaseCommand
 from common.utils.jotform_api import JotFormAPIService
 from common.models.user import User
 from chat.models.conversation import ChatMessage, Conversation
 from chat.utils.jotform_conversation import get_chat_messages
 
 
-class Command(BaseCommand):
+class Command(CustomBaseCommand):
     help = "Fetch JotForm agent conversation history"
+    command_name = "fetch_jotform_agent_chat"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -23,7 +23,7 @@ class Command(BaseCommand):
             help="The ID of the chat to fetch conversation history for.",
         )
 
-    def handle(self, *args, **options):
+    def process(self, *args, **options):
         user = User.objects.first()
         agent_id = options["agent_id"]
         chat_id = options["chat_id"]
@@ -41,13 +41,8 @@ class Command(BaseCommand):
 
         if chat_messages:
             ChatMessage.objects.bulk_create(chat_messages)
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully fetched JotForm agent conversation history, and {len(chat_messages)} messages saved to the database."
-                )
+            self.logger.info(
+                f"Successfully fetched JotForm agent conversation history, and {len(chat_messages)} messages saved to the database."
             )
         else:
-            self.stdout.write(
-                self.style.WARNING("No new messages found in the conversation history.")
-            )
+            self.logger.warning("No new messages found in the conversation history.")
