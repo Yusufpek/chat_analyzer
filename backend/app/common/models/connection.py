@@ -44,7 +44,7 @@ class Agent(models.Model):
     connection = models.ForeignKey(
         Connection,
         on_delete=models.CASCADE,
-        related_name="agent_ids",
+        related_name="agents",
     )
     id = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255, null=True, blank=True)

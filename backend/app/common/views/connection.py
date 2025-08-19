@@ -8,10 +8,11 @@ from common.models.connection import Connection, Agent
 class ConnectionView(BaseAPIView):
     def post_request(self, request, *args, **kwargs):
         """
-        Handles the creation of a new connection.
+        Handles the creation of a new connection and associated agents.
         """
         data = JSONParser().parse(request)
         data["user"] = request.user.id
+        agents = data.pop("agents", [])
         serializer = ConnectionSerializer(data=data)
 
         if serializer.is_valid():
@@ -20,9 +21,28 @@ class ConnectionView(BaseAPIView):
                 user=request.user, connection_type=conn_type
             ).exists():
                 return ResponseStatus.CONFLICT, {"errors": "Connection already exists."}
+            connection = serializer.save()
 
-            serializer.save()
-            return ResponseStatus.CREATED, {"content": serializer.data}
+            # Create agents
+            created_agents = []
+            for agent_data in agents:
+                agent_data["connection"] = connection.id
+                agent_serializer = AgentSerializer(data=agent_data)
+                if agent_serializer.is_valid():
+                    created_agents.append(agent_serializer.save())
+                else:
+                    return ResponseStatus.BAD_REQUEST, {
+                        "errors": agent_serializer.errors
+                    }
+
+            # Serialize the connection and agents
+            connection_serializer = ConnectionSerializer(connection)
+            agent_serializer = AgentSerializer(created_agents, many=True)
+
+            return ResponseStatus.CREATED, {
+                "content": connection_serializer.data,
+                "agents": agent_serializer.data,
+            }
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
     def put_request(self, request, *args, **kwargs):
