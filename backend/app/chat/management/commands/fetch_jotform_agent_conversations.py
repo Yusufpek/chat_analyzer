@@ -41,7 +41,13 @@ class Command(CustomBaseCommand):
         conversations = []
         for agent_id in agent_ids:
             # request
-            convs = get_conversations(service, agent_id, user.id, conversation_ids)
+            convs = get_conversations(
+                service,
+                agent_id,
+                user.id,
+                self.logger,
+                conversation_ids,
+            )
             if convs:
                 conversations.extend(convs)
 
