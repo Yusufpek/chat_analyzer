@@ -11,9 +11,12 @@ class ConversationListAPIView(BaseListAPIView):
     serializer_class = ConversationSerializer
 
     def get_queryset(self):
-        return Conversation.objects.filter(user=self.request.user).order_by(
-            "-created_at"
-        )
+        queryset = Conversation.objects.filter(user=self.request.user)
+        if "agent_id" in self.kwargs:
+            agent_id = self.kwargs.get("agent_id")
+            queryset = queryset.filter(agent_id=agent_id)
+
+        return queryset.order_by("-created_at")
 
 
 class ConversationDetailAPIView(BaseAPIView):

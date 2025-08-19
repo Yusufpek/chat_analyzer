@@ -1,7 +1,6 @@
-from django.core.management.base import BaseCommand
-
+from common.base.base_command import CustomBaseCommand
 from common.utils.jotform_api import JotFormAPIService
-from common.models.connection import Connection
+from common.models.connection import Connection, Agent
 from common.constants.sources import SOURCE_JOTFORM
 from chat.models.conversation import Conversation, ChatMessage
 from chat.utils.jotform_conversation import (
@@ -10,8 +9,9 @@ from chat.utils.jotform_conversation import (
 )
 
 
-class Command(BaseCommand):
+class Command(CustomBaseCommand):
     help = "Fetch JotForm agent conversations"
+    command_name = "fetch_jotform_agent_conversations_and_histories"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -21,41 +21,42 @@ class Command(BaseCommand):
             help="The ID of the JotForm agent to fetch conversations for.",
         )
 
-    def handle(self, *args, **options):
+    def process(self, *args, **options):
         connection_id = options["connection_id"]
         connection = Connection.objects.filter(
             connection_type=SOURCE_JOTFORM, id=connection_id
         ).first()
         if not connection:
-            self.stdout.write(self.style.ERROR("No JotForm connection found for user."))
+            self.logger.error("No JotForm connection found for user.")
             return
 
         user = connection.user
-        config = connection.config
-        agent_ids = [agent.get("agent_id") for agent in config.get("agents", [])]
+        agent_ids = Agent.objects.filter(
+            connection=connection,
+        ).values_list("id", flat=True)
 
         if not agent_ids:
-            self.stdout.write(
-                self.style.ERROR("No agents found in JotForm connection configuration.")
-            )
+            self.logger.error("No agents found in JotForm connection configuration.")
             return
         else:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Found {len(agent_ids)} agents in JotForm connection."
-                )
-            )
+            self.logger.info(f"Found {len(agent_ids)} agents in JotForm connection.")
 
         service = JotFormAPIService(user=user)
 
         # Get Conversations
-        conversation_ids = Conversation.objects.values_list("id", flat=True)
+        conversation_ids = list(Conversation.objects.values_list("id", flat=True))
         new_conversation_ids = []
 
         conversations = []
         for agent_id in agent_ids:
             # request
-            convs = get_conversations(service, agent_id, user.id, conversation_ids)
+            convs = get_conversations(
+                service,
+                agent_id,
+                user.id,
+                self.logger,
+                conversation_ids,
+            )
             if convs:
                 conversations.extend(convs)
                 new_conversation_ids.extend(
@@ -64,22 +65,22 @@ class Command(BaseCommand):
 
         if conversations:
             Conversation.objects.bulk_create(conversations)
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully fetched JotForm agent conversations, and {len(conversations)} conversations saved to the database."
-                )
+            self.logger.info(
+                f"Successfully fetched JotForm agent conversations, and {len(conversations)} conversations saved to the database."
             )
         else:
-            self.stdout.write(self.style.WARNING("No new conversations found to save."))
+            self.logger.warning("No new conversations found to save.")
 
         # Get ChatMessages
         chat_messages_bulk = []
         chat_message_ids = ChatMessage.objects.values_list("id", flat=True)
-        for new_chat_id in new_conversation_ids:
+        conversation_ids.extend(new_conversation_ids)
+        for new_chat_id in conversation_ids:
             chat_messages = get_chat_messages(
                 service,
                 agent_id,
                 new_chat_id,
+                self.logger,
                 chat_message_ids=chat_message_ids,
             )
             if chat_messages:
@@ -87,12 +88,8 @@ class Command(BaseCommand):
 
         if chat_messages_bulk:
             ChatMessage.objects.bulk_create(chat_messages_bulk)
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully fetched JotForm agent conversation history, and {len(chat_messages_bulk)} messages saved to the database."
-                )
+            self.logger.info(
+                f"Successfully fetched JotForm agent conversation history, and {len(chat_messages_bulk)} messages saved to the database."
             )
         else:
-            self.stdout.write(
-                self.style.WARNING("No new messages found in the conversation history.")
-            )
+            self.logger.warning("No new messages found in the conversation history.")
