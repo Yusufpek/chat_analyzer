@@ -37,7 +37,7 @@ class Command(CustomBaseCommand):
             )
 
         service = JotFormAPIService(user=user)
-        chat_messages = get_chat_messages(service, agent_id, chat_id)
+        chat_messages = get_chat_messages(service, agent_id, chat_id, self.logger)
 
         if chat_messages:
             ChatMessage.objects.bulk_create(chat_messages)
