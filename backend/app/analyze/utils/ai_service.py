@@ -51,3 +51,10 @@ class AIService:
         This method can be overridden by subclasses to handle specific response formats.
         """
         return response
+
+    def sentimental_analysis(self, conversation_messages: str):
+        """
+        Performs sentiment analysis on the provided conversation messages.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")

@@ -1,3 +1,4 @@
+import json
 from .ai_service import AIService, EngineType
 
 
@@ -39,3 +40,37 @@ class OpenAIService(AIService):
         except Exception as e:
             print(f"Error parsing response: {e}")
         return response
+
+    def sentimental_analysis(self, conversation_messages):
+        """
+        Performs sentiment analysis on the provided conversation messages using OpenAI's API.
+        :param conversation_messages: List of messages in the conversation.
+        :return: A tuple containing the sentiment label and details.
+        :rtype: tuple(str, str)
+        """
+        if not conversation_messages:
+            raise ValueError(
+                "No conversation messages provided for sentiment analysis."
+            )
+
+        prompt = (
+            "Here is a conversation between an AI assistant and a user. "
+            "Analyze the sentiment of the user's messages and provide a summary of their emotional state. "
+            "Focus only on the user's messages.\n\n"
+            f"{conversation_messages}\n\n"
+            "Provide the sentiment analysis in the following format:\n"
+            "{\n"
+            '  "sentiment": "<positive/negative>",\n'
+            '  "details": "<brief explanation of the sentiment>"\n'
+            "}"
+        )
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(self.parse_response(response))
+        print("parsed_response:", parsed_response)
+        if "sentiment" in parsed_response and "details" in parsed_response:
+            return parsed_response["sentiment"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for sentiment analysis."
+        )
