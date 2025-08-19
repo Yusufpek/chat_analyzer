@@ -1,7 +1,6 @@
 from common.base.base_command import CustomBaseCommand
 from common.utils.jotform_api import JotFormAPIService
-from common.models.connection import Connection
-from common.models.agent import Agent
+from common.models.connection import Connection, Agent
 from common.constants.sources import SOURCE_JOTFORM
 from chat.models.conversation import Conversation, ChatMessage
 from chat.utils.jotform_conversation import (
