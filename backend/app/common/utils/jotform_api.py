@@ -109,7 +109,6 @@ class JotFormAPIService:
             params={
                 "apiKey": self.api_key,
                 "orderby": "created_at,asc",
-                "filter": "created_at,gt,2025-08-12 09:52:40",
                 "limit": 500,
             },
         )
