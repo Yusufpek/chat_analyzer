@@ -1,3 +1,5 @@
+from django.db.models import Subquery, OuterRef
+
 from common.base.base_api_view import BaseAPIView, BaseListAPIView, ResponseStatus
 from chat.serializers.conversation import ChatMessageSerializer, ConversationSerializer
 from chat.models.conversation import ChatMessage, Conversation
@@ -11,7 +13,15 @@ class ConversationListAPIView(BaseListAPIView):
     serializer_class = ConversationSerializer
 
     def get_queryset(self):
-        queryset = Conversation.objects.filter(user=self.request.user)
+        last_message_subquery = (
+            ChatMessage.objects.filter(conversation_id=OuterRef("id"))
+            .order_by("-created_at")
+            .values("content")[:1]
+        )
+
+        queryset = Conversation.objects.filter(user=self.request.user).annotate(
+            last_message=Subquery(last_message_subquery)
+        )
         if "agent_id" in self.kwargs:
             agent_id = self.kwargs.get("agent_id")
             queryset = queryset.filter(agent_id=agent_id)
