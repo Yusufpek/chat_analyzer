@@ -13,6 +13,11 @@ conversation_urlpatterns = [
         name="conversation_list_api_url",
     ),
     path(
+        "conversations/<slug:agent_id>",
+        ConversationListAPIView.as_view(),
+        name="conversation_list_api_url",
+    ),
+    path(
         "conversation/<slug:conversation_id>/",
         ConversationDetailAPIView.as_view(),
         name="conversation_detail_api_url",
