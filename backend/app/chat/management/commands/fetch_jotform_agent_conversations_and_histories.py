@@ -1,6 +1,7 @@
 from common.base.base_command import CustomBaseCommand
 from common.utils.jotform_api import JotFormAPIService
 from common.models.connection import Connection
+from common.models.agent import Agent
 from common.constants.sources import SOURCE_JOTFORM
 from chat.models.conversation import Conversation, ChatMessage
 from chat.utils.jotform_conversation import (
@@ -31,8 +32,9 @@ class Command(CustomBaseCommand):
             return
 
         user = connection.user
-        config = connection.config
-        agent_ids = [agent.get("agent_id") for agent in config.get("agents", [])]
+        agent_ids = Agent.objects.filter(
+            connection=connection,
+        ).values_list("id", flat=True)
 
         if not agent_ids:
             self.logger.error("No agents found in JotForm connection configuration.")
