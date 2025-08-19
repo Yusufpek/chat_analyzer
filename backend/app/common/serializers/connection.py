@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from common.models.connection import Connection
+from common.models.connection import Connection, Agent
 from common.constants.sources import SOURCE_JOTFORM, SOURCE_CHATGPT
 
 
@@ -37,3 +37,21 @@ class ConnectionSerializer(serializers.ModelSerializer):
         if not data.get("api_key"):
             raise serializers.ValidationError("API key is required.")
         return data
+
+
+class AgentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agent
+        fields = [
+            "id",
+            "name",
+            "avatar_url",
+            "connection",
+        ]
+
+    def to_representation(self, instance):
+        return {
+            "id": instance.id,
+            "avatar_url": instance.avatar_url,
+            "name": instance.name,
+        }
