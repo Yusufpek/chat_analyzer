@@ -318,3 +318,112 @@ Status: 400 Bad Request
 ```
 
 Status: 400 Bad Request
+
+---
+
+## 4. Agent API
+
+### Endpoint: `/agent/`
+
+**Method**: `GET`  
+**Description**: Fetches all JotForm agents associated with the authenticated user.
+
+#### Authentication
+
+- **Authentication Classes**: `JWTAuthentication`
+- **Header**:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+#### Success Response
+
+```json
+{
+  "status": "SUCCESS",
+  "content": [
+    {
+      "id": "0198a7c05a017e45a9a648ec18e2545d4923",
+      "avatar_url": null,
+      "name": "hu_cs"
+    },
+    {
+      "id": "01989df5271475be9088f614bbe69043fe7c",
+      "avatar_url": "https://cdn.jotfor.ms/assets/agent-avatars/avatar_icon_811.png",
+      "name": "test_2"
+    },
+    {
+      "id": "01989e1b648077d78a5f89a9a75ec75030c4",
+      "avatar_url": null,
+      "name": "test_1"
+    }
+  ],
+  "duration": "11.302 ms"
+}
+```
+
+Status: 200 OK
+
+---
+
+### Endpoint: `/agent/`
+
+**Method**: `POST`  
+**Description**: Creates a new JotForm agent for the authenticated user.
+
+#### Authentication
+
+- **Authentication Classes**: `JWTAuthentication`
+- **Header**:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+#### Request Body
+
+```json
+{
+  "name": "new_agent",
+  "avatar_url": "https://example.com/avatar.png"
+}
+```
+
+#### Success Response
+
+```json
+{
+  "status": "SUCCESS",
+  "content": {
+    "id": "0198a7c05a017e45a9a648ec18e2545d4923",
+    "avatar_url": "https://example.com/avatar.png",
+    "name": "new_agent"
+  },
+  "duration": "5.123 ms"
+}
+```
+
+Status: 201 Created
+
+#### Error Response (No JotForm Connection)
+
+```json
+{
+  "status": "BAD_REQUEST",
+  "error": "No JotForm connection found for user."
+}
+```
+
+Status: 400 Bad Request
+
+#### Error Response (Validation)
+
+```json
+{
+  "status": "BAD_REQUEST",
+  "errors": {
+    "name": ["This field is required."]
+  }
+}
+```
+
+Status: 400 Bad Request
