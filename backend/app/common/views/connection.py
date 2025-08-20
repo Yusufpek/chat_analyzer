@@ -1,6 +1,7 @@
 import json
 from rest_framework.parsers import JSONParser
 from django.db import transaction
+from django.core.management import call_command
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
 from common.serializers.connection import (
@@ -133,10 +134,16 @@ class AgentAPIView(BaseAPIView):
                 "error": "No JotForm connection found for user."
             }
         data = request.data.copy()
-        data.update({"connection": connection.id})
-        serializer = AgentSerializer(data=data)
+        for agent in data["agents"]:
+            agent["connection"] = connection.id
+        serializer = AgentSerializer(data=data["agents"], many=True)
         if serializer.is_valid():
             serializer.save()
+            for agent in serializer.validated_data:
+                call_command(
+                    "fetch_jotform_agent_conversations",
+                    agent_id=agent["id"],
+                )
             return ResponseStatus.SUCCESS, serializer.data
         return ResponseStatus.BAD_REQUEST, serializer.errors
 
