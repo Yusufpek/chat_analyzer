@@ -1,13 +1,14 @@
 from datetime import datetime
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from .custom_auth import CustomAuthentication
 
 from .response import ResponseStatus, get_status_to_response, code_to_status
 
 
 class BaseAPIView(generics.GenericAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_request(self, request) -> dict:
@@ -28,8 +29,16 @@ class BaseAPIView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         start = datetime.now()
         response_status, content = self.post_request(request, *args, **kwargs)
+        cookies = []
+        if "cookies" in content:
+            cookies = content.pop("cookies", [])
         duration = (datetime.now() - start).total_seconds() * 1000
-        return get_status_to_response(response_status, content, duration)
+        return get_status_to_response(
+            response_status,
+            content,
+            duration,
+            cookies=cookies,
+        )
 
     def put(self, request, *args, **kwargs):
         start = datetime.now()

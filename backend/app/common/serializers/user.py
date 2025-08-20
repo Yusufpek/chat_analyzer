@@ -3,19 +3,7 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "profile_image",
-            "username",
-        ]
-
-
-class UserRegisterSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
@@ -34,7 +22,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "last_name": {"required": True, "allow_blank": False},
             "email": {"allow_blank": True},
             "username": {"required": True, "allow_blank": False},
-            "is_staff": {"required": False, "default": False},
             "password": {"write_only": True},
         }
 
