@@ -1,8 +1,19 @@
+import json
 from rest_framework.parsers import JSONParser
+from django.db import transaction
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
-from common.serializers.connection import ConnectionSerializer, AgentSerializer
+from common.serializers.connection import (
+    ConnectionSerializer,
+    AgentSerializer,
+    FileSourceSerializer,
+)
 from common.models.connection import Connection, Agent
+from chat.utils.file_conversations import (
+    get_conversation_messages_from_csv,
+    get_conversation_messages_from_json,
+)
+from common.constants.sources import SOURCE_FILE
 
 
 class ConnectionView(BaseAPIView):
@@ -59,6 +70,58 @@ class ConnectionView(BaseAPIView):
         if serializer.is_valid():
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
+        return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
+
+
+class FileSourceView(BaseAPIView):
+    def post_request(self, request, *args, **kwargs):
+        """
+        Handles the creation of a new file source connection.
+        """
+        serializer = FileSourceSerializer(data=request.data)
+
+        if serializer.is_valid():
+            file = serializer.validated_data.pop("file")
+
+            try:
+                with transaction.atomic():
+                    conn, _ = Connection.objects.get_or_create(
+                        user=request.user,
+                        connection_type=SOURCE_FILE,
+                    )
+
+                    if Agent.objects.filter(
+                        name=serializer.validated_data["agent_name"]
+                    ).exists():
+                        return ResponseStatus.CONFLICT, {
+                            "errors": "Agent with this name already exists."
+                        }
+                    agent, _ = Agent.objects.create(
+                        name=serializer.validated_data["agent_name"],
+                        avatar_url=serializer.validated_data.get(
+                            "agent_avatar_url", ""
+                        ),
+                        connection=conn,
+                    )
+
+                    if file.name.endswith(".csv"):
+                        file_content = file.read()
+                        get_conversation_messages_from_csv(
+                            user=request.user,
+                            csv_data=file_content,
+                            agent_id=agent.id,
+                        )
+                    else:
+                        json_data = file.read().decode("utf-8")
+                        get_conversation_messages_from_json(
+                            user=request.user,
+                            json_data=json.loads(json_data),
+                            agent_id=agent.id,
+                        )
+            except Exception as e:
+                return ResponseStatus.BAD_REQUEST, {"errors": str(e)}
+
+            return ResponseStatus.CREATED, {"content": AgentSerializer(agent).data}
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 

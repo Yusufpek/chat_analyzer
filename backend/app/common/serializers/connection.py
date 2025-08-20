@@ -55,3 +55,18 @@ class AgentSerializer(serializers.ModelSerializer):
             "avatar_url": instance.avatar_url,
             "name": instance.name,
         }
+
+
+class FileSourceSerializer(serializers.Serializer):
+    agent_name = serializers.CharField(max_length=255)
+    file = serializers.FileField()
+    agent_avatar_url = serializers.CharField(
+        max_length=127,
+        allow_blank=True,
+        required=False,
+    )
+
+    def validate_file(self, value):
+        if not value.name.endswith(".csv") and not value.name.endswith(".json"):
+            raise serializers.ValidationError("Only CSV and JSON files are supported.")
+        return value
