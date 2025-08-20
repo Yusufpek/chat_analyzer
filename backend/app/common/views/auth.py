@@ -1,11 +1,14 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from django.conf import settings
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
-from common.serializers.user import UserRegisterSerializer, UserLoginSerializer
+from common.serializers.user import (
+    UserSerializer,
+    UserLoginSerializer,
+)
 
 
 class UserRegisterAPIView(BaseAPIView):
@@ -14,7 +17,7 @@ class UserRegisterAPIView(BaseAPIView):
     """
 
     permission_classes = []
-    serializer_class = UserRegisterSerializer
+    serializer_class = UserSerializer
 
     def post_request(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -42,6 +45,7 @@ class LoginView(BaseAPIView):
         token = RefreshToken.for_user(user)
         data = serializer.data
         auth_cookie = {
+            "action": "set",
             "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
             "value": str(token.access_token),
             "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
@@ -50,6 +54,7 @@ class LoginView(BaseAPIView):
             "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         }
         refresh_cookie = {
+            "action": "set",
             "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
             "value": str(token),
             "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
@@ -67,7 +72,7 @@ class UserDetailView(BaseAPIView):
     """
 
     permission_classes = [IsAuthenticated]
-    serializer_class = UserRegisterSerializer
+    serializer_class = UserSerializer
 
     def get_request(self, request, *args, **kwargs):
         user = request.user
@@ -75,43 +80,62 @@ class UserDetailView(BaseAPIView):
         return ResponseStatus.SUCCESS, {"content": serializer.data}
 
 
-class LoginRefreshView(TokenRefreshView):
+class LoginRefreshView(BaseAPIView):
     """
-    An endpoint for refreshing JWT tokens.
+    An endpoint for refreshing JWT tokens using the refresh token from cookies.
     """
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+    serializer_class = TokenRefreshSerializer
 
-        # Extract the refreshed access token from the response data
-        if response.status_code == 200 and "access" in response.data:
-            access_token = response.data.pop("access")
-            refresh_token = response.data.pop("refresh")
-            if not access_token or not refresh_token:
-                response.data = {
-                    "status": "error",
-                    "message": "Invalid token refresh response.",
-                }
-                response.status_code = ResponseStatus.BAD_REQUEST.value
-                return response
-
-            # Set the access token as a cookie
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                value=access_token,
-                expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+    def post_request(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.COOKIES.get(
+                settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh"
             )
+            if not refresh_token:
+                return ResponseStatus.BAD_REQUEST, {
+                    "error": "Refresh token not found in cookies."
+                }
 
-        response.data = {
-            "status": "success",
-            "message": "Tokens refreshed successfully.",
-        }
-        return response
+            data = {"refresh": refresh_token}
+            serializer = self.get_serializer(data=data)
 
-    pass
+            if serializer.is_valid(raise_exception=True):
+                data = serializer.validated_data
+
+                cookies = [
+                    {
+                        "action": "set",
+                        "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+                        "value": data["access"],
+                        "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                        "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                        "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                        "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    },
+                    {
+                        "action": "set",
+                        "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+                        "value": data["refresh"],
+                        "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                        "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                        "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                        "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    },
+                ]
+                data = {
+                    "message": "Tokens refreshed successfully.",
+                    "cookies": cookies,
+                }
+                return ResponseStatus.SUCCESS, data
+
+            return ResponseStatus.BAD_REQUEST, {
+                "error": "Invalid refresh token not found."
+            }
+
+        except Exception as e:
+            print(f"Error during token refresh: {str(e)}")
+            return ResponseStatus.BAD_REQUEST, {"error": str(e)}
 
 
 class LogoutView(BaseAPIView):
@@ -123,26 +147,25 @@ class LogoutView(BaseAPIView):
 
     def post_request(self, request):
         try:
-            refresh_token = request.data["refresh_token"]
+            refresh_token = request.COOKIES.get(
+                settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh"
+            )
+            if not refresh_token:
+                return ResponseStatus.BAD_REQUEST, {
+                    "error": "Refresh token not found in cookies."
+                }
+
             token = RefreshToken(refresh_token)
             token.blacklist()
 
             cookies = [
                 {
+                    "action": "delete",
                     "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
-                    "value": "",
-                    "expires": 0,
-                    "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                    "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                    "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
                 },
                 {
+                    "action": "delete",
                     "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
-                    "value": "",
-                    "expires": 0,
-                    "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                    "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                    "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
                 },
             ]
 
