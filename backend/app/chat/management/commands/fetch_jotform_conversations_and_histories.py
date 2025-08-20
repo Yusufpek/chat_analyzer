@@ -44,7 +44,12 @@ class Command(CustomBaseCommand):
         service = JotFormAPIService(user=user)
 
         # Get Conversations
-        conversation_ids = list(Conversation.objects.values_list("id", flat=True))
+        conversation_ids = list(
+            Conversation.objects.filter(
+                source=SOURCE_JOTFORM,
+                user=user,
+            ).values_list("id", flat=True)
+        )
         new_conversation_ids = []
 
         conversations = []
@@ -73,7 +78,10 @@ class Command(CustomBaseCommand):
 
         # Get ChatMessages
         chat_messages_bulk = []
-        chat_message_ids = ChatMessage.objects.values_list("id", flat=True)
+        chat_message_ids = ChatMessage.objects.filter(
+            conversation__source=SOURCE_JOTFORM,
+            conversation__user=user,
+        ).values_list("id", flat=True)
         conversation_ids.extend(new_conversation_ids)
         for new_chat_id in conversation_ids:
             chat_messages = get_chat_messages(

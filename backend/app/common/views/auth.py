@@ -25,8 +25,26 @@ class UserRegisterAPIView(BaseAPIView):
         user = serializer.save()
         token = RefreshToken.for_user(user)
         data = serializer.data
-        data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
-        return ResponseStatus.ACCEPTED, {"content": data}
+        auth_cookie = {
+            "action": "set",
+            "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+            "value": str(token.access_token),
+            "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        }
+        refresh_cookie = {
+            "action": "set",
+            "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+            "value": str(token),
+            "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        }
+        data["cookies"] = [auth_cookie, refresh_cookie]
+        return ResponseStatus.SUCCESS, data
 
 
 class LoginView(BaseAPIView):

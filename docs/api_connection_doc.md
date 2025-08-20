@@ -184,10 +184,14 @@ Error (400 Bad Request)
 
 ```json
 {
-  "id": "01989e13c8ff7245a9e77b61bcf744fbd7f5",
-  "name": "New Agent",
-  "avatar_url": "https://example.com/avatar.png",
-  "jotform_render_url": "https://agent.jotform.com/01989e13c8ff7245a9e77b61bcf744fbd7f5"
+  "agents": [
+    {
+      "id": "01989e13c8ff7245a9e77b61bcf744fbd7f5",
+      "name": "New Agent",
+      "avatar_url": "https://example.com/avatar.png",
+      "jotform_render_url": "https://agent.jotform.com/01989e13c8ff7245a9e77b61bcf744fbd7f5"
+    }
+  ]
 }
 ```
 
