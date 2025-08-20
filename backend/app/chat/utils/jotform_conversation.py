@@ -36,11 +36,7 @@ def get_chat_messages(
         if not message_content.get("content"):
             continue
         if "thought" in message_content["content"]:
-            message_content["content"] = json.loads(message_content["content"])[
-                "thought"
-            ]
-            if "message" in message_content["content"]:
-                message_content["content"] = message_content["content"]["message"]
+            continue
 
         chat_messages.append(
             ChatMessage(
