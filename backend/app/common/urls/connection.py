@@ -1,6 +1,11 @@
 from django.urls import path
 
-from common.views.connection import ConnectionView, AgentAPIView, FileSourceView
+from common.views.connection import (
+    ConnectionView,
+    AgentAPIView,
+    FileSourceView,
+    JotFormAgentAPIView,
+)
 
 connection_urlpatterns = [
     path(
@@ -17,5 +22,15 @@ connection_urlpatterns = [
         "agent/",
         AgentAPIView.as_view(),
         name="agent_api_url",
+    ),
+    path(
+        "jotform/agents/",
+        JotFormAgentAPIView.as_view(),
+        name="jotform_agent_api_url",
+    ),
+    path(
+        "jotform/agents/<slug:option>/",
+        JotFormAgentAPIView.as_view(),
+        name="jotform_agent_api_url",
     ),
 ]
