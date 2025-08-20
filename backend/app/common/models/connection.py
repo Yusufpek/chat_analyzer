@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -46,9 +47,15 @@ class Agent(models.Model):
         on_delete=models.CASCADE,
         related_name="agents",
     )
-    id = models.CharField(max_length=255, primary_key=True)
+    id = models.CharField(
+        max_length=255,
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
     name = models.CharField(max_length=255, null=True, blank=True)
     avatar_url = models.CharField(max_length=127, null=True, blank=True)
+    jotform_render_url = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"{self.connection.connection_type} - {self.id}"

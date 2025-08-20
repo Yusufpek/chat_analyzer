@@ -1,10 +1,14 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from django.conf import settings
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
-from common.serializers.user import UserRegisterSerializer, UserLoginSerializer
+from common.serializers.user import (
+    UserSerializer,
+    UserLoginSerializer,
+)
 
 
 class UserRegisterAPIView(BaseAPIView):
@@ -13,7 +17,7 @@ class UserRegisterAPIView(BaseAPIView):
     """
 
     permission_classes = []
-    serializer_class = UserRegisterSerializer
+    serializer_class = UserSerializer
 
     def post_request(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -40,11 +44,26 @@ class LoginView(BaseAPIView):
         serializer = UserLoginSerializer(user)
         token = RefreshToken.for_user(user)
         data = serializer.data
-        data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
+        auth_cookie = {
+            "action": "set",
+            "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+            "value": str(token.access_token),
+            "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        }
+        refresh_cookie = {
+            "action": "set",
+            "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+            "value": str(token),
+            "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        }
+        data["cookies"] = [auth_cookie, refresh_cookie]
         return ResponseStatus.SUCCESS, data
-
-    def clear_payload(self, request):
-        del request.data["password"]
 
 
 class UserDetailView(BaseAPIView):
@@ -53,7 +72,7 @@ class UserDetailView(BaseAPIView):
     """
 
     permission_classes = [IsAuthenticated]
-    serializer_class = UserRegisterSerializer
+    serializer_class = UserSerializer
 
     def get_request(self, request, *args, **kwargs):
         user = request.user
@@ -61,13 +80,62 @@ class UserDetailView(BaseAPIView):
         return ResponseStatus.SUCCESS, {"content": serializer.data}
 
 
-class LoginRefreshView(TokenRefreshView):
+class LoginRefreshView(BaseAPIView):
     """
-    An endpoint for refreshing JWT tokens.
+    An endpoint for refreshing JWT tokens using the refresh token from cookies.
     """
 
-    permission_classes = []
-    pass
+    serializer_class = TokenRefreshSerializer
+
+    def post_request(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.COOKIES.get(
+                settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh"
+            )
+            if not refresh_token:
+                return ResponseStatus.BAD_REQUEST, {
+                    "error": "Refresh token not found in cookies."
+                }
+
+            data = {"refresh": refresh_token}
+            serializer = self.get_serializer(data=data)
+
+            if serializer.is_valid(raise_exception=True):
+                data = serializer.validated_data
+
+                cookies = [
+                    {
+                        "action": "set",
+                        "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+                        "value": data["access"],
+                        "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                        "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                        "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                        "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    },
+                    {
+                        "action": "set",
+                        "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+                        "value": data["refresh"],
+                        "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                        "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                        "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                        "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    },
+                ]
+                data = {
+                    "message": "Tokens refreshed successfully.",
+                    "cookies": cookies,
+                }
+                return ResponseStatus.SUCCESS, data
+
+            return ResponseStatus.BAD_REQUEST, {
+                "error": "Invalid refresh token not found."
+            }
+
+        except Exception as e:
+            print(f"Error during token refresh: {str(e)}")
+            return ResponseStatus.BAD_REQUEST, {"error": str(e)}
 
 
 class LogoutView(BaseAPIView):
@@ -79,11 +147,32 @@ class LogoutView(BaseAPIView):
 
     def post_request(self, request):
         try:
-            refresh_token = request.data["refresh_token"]
+            refresh_token = request.COOKIES.get(
+                settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh"
+            )
+            if not refresh_token:
+                return ResponseStatus.BAD_REQUEST, {
+                    "error": "Refresh token not found in cookies."
+                }
+
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            return ResponseStatus.SUCCESS, {"detail": "Successfully logged out."}
+            cookies = [
+                {
+                    "action": "delete",
+                    "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+                },
+                {
+                    "action": "delete",
+                    "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+                },
+            ]
+
+            return ResponseStatus.SUCCESS, {
+                "detail": "Successfully logged out.",
+                "cookies": cookies,
+            }
         except Exception as e:
             if isinstance(e, KeyError):
                 return ResponseStatus.BAD_REQUEST, {"error": "Refresh token required."}

@@ -28,12 +28,13 @@ def code_to_status(code):
     return code_to_status_map[code]
 
 
-def get_status_to_response(response_status, content, duration):
+def get_status_to_response(response_status, content, duration, cookies=None):
     if response_status == ResponseStatus.SUCCESS:
         return SuccessResponse(
             status_message=response_status.name,
             content=content,
             duration=duration,
+            cookies=cookies or [],
         )
     elif response_status == ResponseStatus.CREATED:
         return SuccessResponse(
@@ -89,10 +90,10 @@ class SuccessResponse(JsonResponse):
     def __init__(
         self,
         status_message=None,
-        message=None,
         status=HTTP_200_OK,
         content=None,
         duration=None,
+        cookies=None,
         *args,
         **kwargs,
     ):
@@ -102,6 +103,18 @@ class SuccessResponse(JsonResponse):
             "duration": f"{duration} ms",
         }
         super().__init__(data=data, status=status, *args, **kwargs)
+        for cookie in cookies or []:
+            if cookie["action"] == "set":
+                self.set_cookie(
+                    key=cookie["key"],
+                    value=cookie["value"],
+                    expires=cookie.get("expires", None),
+                    secure=cookie.get("secure", False),
+                    httponly=cookie.get("httponly", True),
+                    samesite=cookie.get("samesite", "Lax"),
+                )
+            elif cookie["action"] == "delete":
+                self.delete_cookie(cookie["key"])
 
 
 class ErrorResponse(JsonResponse):

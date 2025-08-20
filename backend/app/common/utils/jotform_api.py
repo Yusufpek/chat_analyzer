@@ -151,3 +151,39 @@ class JotFormAPIService:
             return response.status_code, {
                 "error": response.text,
             }
+
+    def get_agents(self):
+        """
+        Retrieve all JotForm agents for the user.
+        :return: A tuple containing the response code and content.
+        """
+        if not self.api_key:
+            return 100, {
+                "error": "No JotForm connection found for user.",
+            }
+
+        url = f"{JOTFORM_API_BASE_URL}/listings/mixed-listing/assets"
+        response = requests.get(
+            url,
+            params={
+                "apiKey": self.api_key,
+                "status": "active",
+                "assetTypes[0]": "ai-agent",
+                "limit": 50,
+                "addAIAgents": 1,
+                "orderby": "created_at",
+            },
+        )
+        try:
+            data = response.json()
+            response_code = data.get("responseCode", response.status_code)
+            if response_code != 200:
+                return response_code, {
+                    "error": data.get("message", "Unknown error"),
+                }
+
+            return response_code, data.get("content", [])
+        except ValueError:
+            return response.status_code, {
+                "error": response.text,
+            }
