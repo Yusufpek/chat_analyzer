@@ -34,6 +34,10 @@ def get_chat_messages(
             continue
         if not message_content.get("content"):
             continue
+        if "thought" in message_content["content"]:
+            message_content["content"] = json.loads(message_content["content"])[
+                "thought"
+            ]
         chat_messages.append(
             ChatMessage(
                 id=message["uuid"],
