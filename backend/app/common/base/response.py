@@ -104,14 +104,17 @@ class SuccessResponse(JsonResponse):
         }
         super().__init__(data=data, status=status, *args, **kwargs)
         for cookie in cookies or []:
-            self.set_cookie(
-                key=cookie["key"],
-                value=cookie["value"],
-                expires=cookie.get("expires", None),
-                secure=cookie.get("secure", False),
-                httponly=cookie.get("httponly", True),
-                samesite=cookie.get("samesite", "Lax"),
-            )
+            if cookie["action"] == "set":
+                self.set_cookie(
+                    key=cookie["key"],
+                    value=cookie["value"],
+                    expires=cookie.get("expires", None),
+                    secure=cookie.get("secure", False),
+                    httponly=cookie.get("httponly", True),
+                    samesite=cookie.get("samesite", "Lax"),
+                )
+            elif cookie["action"] == "delete":
+                self.delete_cookie(cookie["key"])
 
 
 class ErrorResponse(JsonResponse):
