@@ -11,7 +11,7 @@ from chat.utils.jotform_conversation import (
 
 class Command(CustomBaseCommand):
     help = "Fetch JotForm agent conversations"
-    command_name = "fetch_jotform_agent_conversations_and_histories"
+    command_name = "fetch_jotform_conversations_and_histories"
 
     def add_arguments(self, parser):
         parser.add_argument(
