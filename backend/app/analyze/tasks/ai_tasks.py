@@ -8,7 +8,7 @@ from datetime import datetime
 
 @shared_task
 def get_sentimental_analysis_task():
-    log = Log(task_name="Get Sentimental Analysis", category=Log.Category.PERIODIC)
+    log = Log(task_name="Get Sentimental Analysis", category=Log.Category.ANALYTICS)
     log.save()
     try:
         management.call_command("get_sentimental_analysis")
