@@ -6,32 +6,31 @@ SENDER_EMAIL = os.environ.get("MAIL")
 
 
 def send_register_email(username, email):
-    subject = "SUBJECT"
-    message = """TEST"""
+    subject = "Welcome to ChatAnalyzer!"
+    message = f"""
+    <html>
+        <body>
+            <h2>Hi {username},</h2>
+            <p>
+                Thank you for registering with <strong>ChatAnalyzer</strong>. We're excited to have you on board!
+            </p>
+            <p>
+                If you have any questions or need assistance, feel free to reach out to our support team.
+            </p>
+            <p>
+                Best regards,<br>
+                <strong>The ChatAnalyzer Team</strong>
+            </p>
+        </body>
+    </html>
+    """
     try:
         send_mail(
             subject=subject,
-            message=message,
+            html_message=message,
             from_email=SENDER_EMAIL,
             recipient_list=[email],
         )
-        return "email sent to: " + email
+        return "Email sent to: " + email
     except Exception as e:
         return "Error sending email: " + str(e)
-
-
-def send_delete_account_email(username, email):
-    subject = "SUBJECT"
-    message = """message"""
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=SENDER_EMAIL,
-            recipient_list=[email],
-        )
-        print("email sent to: ", email)
-        return True
-    except Exception as e:
-        print("Error sending email: ", e)
-        return False
