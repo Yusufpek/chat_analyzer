@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from common.models.connection import Connection, Agent
-from common.constants.sources import SOURCE_JOTFORM, SOURCE_CHATGPT
+from common.constants.sources import SOURCE_JOTFORM, SOURCE_CHATGPT, SOURCE_FILE
 
 
 class ConnectionSerializer(serializers.ModelSerializer):
@@ -30,9 +30,10 @@ class ConnectionSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data["connection_type"] == SOURCE_CHATGPT:
             raise serializers.ValidationError("OPENAI entegration is in development.")
-        if data["connection_type"] != SOURCE_JOTFORM:
+
+        if data["connection_type"] not in [SOURCE_JOTFORM, SOURCE_CHATGPT, SOURCE_FILE]:
             raise serializers.ValidationError(
-                "Invalid connection type. Only JotForm is supported."
+                "Invalid connection type. Supported types are JotForm, ChatGPT, and File."
             )
         if not data.get("api_key"):
             raise serializers.ValidationError("API key is required.")
