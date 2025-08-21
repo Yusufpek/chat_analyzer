@@ -8,6 +8,7 @@ include(
     "db.py",
     "email.py",
     "middleware.py",
+    "ai_service.py",
     "logging.py",
     "celery.py",
 )

@@ -5,6 +5,15 @@ if "MEDIA_ROOT" not in locals():
         os.getcwd(), "media"
     )  # Default to a 'media' folder in the current working directory
 
+if not os.path.exists(os.path.join(MEDIA_ROOT, "logs")):
+    os.makedirs(os.path.join(MEDIA_ROOT, "logs"))
+
+
+if "django.log" not in os.listdir(os.path.join(MEDIA_ROOT, "logs")):
+    with open(os.path.join(MEDIA_ROOT, "logs", "django.log"), "w") as f:
+        f.write("Django log file created.\n")
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
