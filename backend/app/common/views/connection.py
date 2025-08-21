@@ -1,7 +1,6 @@
 import json
 from rest_framework.parsers import JSONParser
 from django.db import transaction
-from django.core.management import call_command
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
 from common.serializers.connection import (
@@ -17,6 +16,10 @@ from chat.utils.file_conversations import (
 from chat.utils.jotform_conversation import get_agents
 from common.constants.sources import SOURCE_FILE, SOURCE_JOTFORM
 from common.utils.jotform_api import JotFormAPIService
+from chat.tasks.jotform_tasks import (
+    fetch_agent_conversations,
+    fetch_jotform_connection_periodic_task,
+)
 
 
 class ConnectionView(BaseAPIView):
@@ -36,7 +39,12 @@ class ConnectionView(BaseAPIView):
                 return ResponseStatus.CONFLICT, {"errors": "Connection already exists."}
             connection = serializer.save()
 
-            # Serialize the connection and agents
+            if connection.connection_type == SOURCE_JOTFORM:
+                fetch_jotform_connection_periodic_task(
+                    connection.id,
+                    connection.sync_interval,
+                )
+
             connection_serializer = ConnectionSerializer(connection)
 
             return ResponseStatus.CREATED, {
@@ -46,6 +54,7 @@ class ConnectionView(BaseAPIView):
 
     def put_request(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
+        print(data)
         connection = Connection.objects.filter(
             connection_type=data.get("connection_type"),
             api_key=data.get("api_key"),
@@ -57,6 +66,11 @@ class ConnectionView(BaseAPIView):
         serializer = ConnectionSerializer(connection, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            if connection.connection_type == SOURCE_JOTFORM:
+                fetch_jotform_connection_periodic_task(
+                    connection.id,
+                    connection.sync_interval,
+                )
             return ResponseStatus.ACCEPTED, serializer.data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
@@ -84,7 +98,7 @@ class FileSourceView(BaseAPIView):
                         return ResponseStatus.CONFLICT, {
                             "errors": "Agent with this name already exists."
                         }
-                    agent, _ = Agent.objects.create(
+                    agent = Agent.objects.create(
                         name=serializer.validated_data["agent_name"],
                         avatar_url=serializer.validated_data.get(
                             "agent_avatar_url", ""
@@ -140,10 +154,7 @@ class AgentAPIView(BaseAPIView):
         if serializer.is_valid():
             serializer.save()
             for agent in serializer.validated_data:
-                call_command(
-                    "fetch_jotform_agent_conversations",
-                    agent_id=agent["id"],
-                )
+                fetch_agent_conversations.delay_on_commit(agent_id=agent["id"])
             return ResponseStatus.SUCCESS, serializer.data
         return ResponseStatus.BAD_REQUEST, serializer.errors
 
