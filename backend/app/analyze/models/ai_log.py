@@ -1,6 +1,6 @@
 from django.db import models
 from analyze.utils.engine_types import EngineType
-from common.models.http_log import HTTPServiceLogModel
+from common.models.log import HTTPServiceLogModel
 
 
 class AIServiceLog(HTTPServiceLogModel):
