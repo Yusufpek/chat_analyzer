@@ -4,6 +4,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from django.conf import settings
 
+from common.tasks.email_tasks import send_register_email_task
 from common.base.base_api_view import BaseAPIView, ResponseStatus
 from common.serializers.user import (
     UserSerializer,
@@ -17,6 +18,7 @@ class UserRegisterAPIView(BaseAPIView):
     """
 
     permission_classes = []
+    authentication_classes = []
     serializer_class = UserSerializer
 
     def post_request(self, request, *args, **kwargs):
@@ -44,6 +46,7 @@ class UserRegisterAPIView(BaseAPIView):
             "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         }
         data["cookies"] = [auth_cookie, refresh_cookie]
+        send_register_email_task.delay_on_commit(user.username, user.email)
         return ResponseStatus.SUCCESS, data
 
 
@@ -53,6 +56,7 @@ class LoginView(BaseAPIView):
     """
 
     permission_classes = []
+    authentication_classes = []
     serializer_class = UserLoginSerializer
 
     def post_request(self, request, *args, **kwargs):
