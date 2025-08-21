@@ -36,12 +36,12 @@ LOGGING = {
         },
     },
     "root": {
-        "handlers": ["console", "file"],  # Add the file handler here
+        "handlers": ["console", "file"],
         "level": "WARNING",
     },
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],  # Add the file handler here
+            "handlers": ["console", "file"],
             "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             "propagate": False,
         },
