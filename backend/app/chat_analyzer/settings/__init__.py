@@ -9,4 +9,5 @@ include(
     "email.py",
     "middleware.py",
     "logging.py",
+    "celery.py",
 )
