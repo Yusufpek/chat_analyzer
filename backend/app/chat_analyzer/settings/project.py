@@ -29,6 +29,8 @@ ASGI_APPLICATION = "chat_analyzer.asgi.application"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+TIME_ZONE = "Europe/Istanbul"
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
