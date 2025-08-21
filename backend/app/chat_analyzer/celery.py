@@ -11,6 +11,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chat_analyzer.settings")
 app = Celery("chat_analyzer")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
+app.conf.enable_utc = True
+app.conf.timezone = "Europe/Istanbul"
+app.conf.beat_max_loop_interval = 30  # seconds
 
 
 @app.task(bind=True)
