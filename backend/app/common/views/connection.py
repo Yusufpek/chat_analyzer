@@ -154,36 +154,17 @@ class JotFormAgentAPIView(BaseAPIView):
         Fetches all JotForm agent IDs for the authenticated user.
         """
         try:
-            content = {}
-
-            if "option" in kwargs:
-                option = kwargs["option"]
-                if option not in ["unsynced", "synced"]:
-                    return ResponseStatus.BAD_REQUEST, {"error": "Invalid option."}
-
-                if option == "synced":
-                    agents = Agent.objects.filter(
-                        connection__user=request.user,
-                        connection__connection_type=SOURCE_JOTFORM,
-                    )
-                    content = AgentSerializer(agents, many=True).data
-
-                elif option == "unsynced":
-                    jotform_service = JotFormAPIService(user=request.user)
-                    unsynced_agents = get_agents(jotform_service)
-                    content = AgentSerializer(unsynced_agents, many=True).data
-            else:
-                jotform_service = JotFormAPIService(user=request.user)
-                unsynced_agents = get_agents(jotform_service)
-                unsynced_agents = AgentSerializer(unsynced_agents, many=True).data
-                agents = Agent.objects.filter(
-                    connection__user=request.user,
-                    connection__connection_type=SOURCE_JOTFORM,
-                )
-                content = {
-                    "unsynced": unsynced_agents,
-                    "synced": AgentSerializer(agents, many=True).data,
-                }
+            jotform_service = JotFormAPIService(user=request.user)
+            unsynced_agents = get_agents(jotform_service)
+            unsynced_agents = AgentSerializer(unsynced_agents, many=True).data
+            agents = Agent.objects.filter(
+                connection__user=request.user,
+                connection__connection_type=SOURCE_JOTFORM,
+            )
+            content = {
+                "unsynced": unsynced_agents,
+                "synced": AgentSerializer(agents, many=True).data,
+            }
             return ResponseStatus.SUCCESS, content
         except Exception as e:
             return ResponseStatus.BAD_REQUEST, {"error": str(e)}
