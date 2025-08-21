@@ -147,6 +147,17 @@ class AgentAPIView(BaseAPIView):
             return ResponseStatus.SUCCESS, serializer.data
         return ResponseStatus.BAD_REQUEST, serializer.errors
 
+    def delete_request(self, request, *args, **kwargs):
+        """
+        Deletes a JotForm agent ID for the authenticated user.
+        """
+        agent_id = kwargs.get("agent_id")
+        agent = Agent.objects.filter(id=agent_id, connection__user=request.user).first()
+        if not agent:
+            return ResponseStatus.NOT_FOUND, {"error": "Agent not found."}
+        agent.delete()
+        return ResponseStatus.SUCCESS, {"message": "Agent deleted successfully."}
+
 
 class JotFormAgentAPIView(BaseAPIView):
     def get_request(self, request, *args, **kwargs):
