@@ -34,6 +34,11 @@ class ConnectionView(BaseAPIView):
                 user=request.user, connection_type=conn_type
             ).exists():
                 return ResponseStatus.CONFLICT, {"errors": "Connection already exists."}
+
+            is_valid = JotFormAPIService.check_api_key(data["api_key"])
+            if not is_valid:
+                return ResponseStatus.BAD_REQUEST, {"errors": "Invalid API key."}
+
             connection = serializer.save()
 
             # Serialize the connection and agents
