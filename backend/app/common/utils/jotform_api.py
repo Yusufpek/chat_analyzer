@@ -1,5 +1,5 @@
 from common.models.connection import Connection
-from common.models.http_log import JotFormServiceLog
+from common.models.log import JotFormServiceLog
 from common.constants.sources import (
     JOTFORM_API_BASE_URL,
     SOURCE_JOTFORM,
@@ -163,7 +163,7 @@ class JotFormAPIService:
             }
 
         url = f"{JOTFORM_API_BASE_URL}/listings/mixed-listing/assets"
-        response = requests.get(
+        response = self.get_request(
             url,
             params={
                 "apiKey": self.api_key,
