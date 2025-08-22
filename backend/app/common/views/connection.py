@@ -90,7 +90,7 @@ class FileSourceView(BaseAPIView):
                         return ResponseStatus.CONFLICT, {
                             "errors": "Agent with this name already exists."
                         }
-                    agent, _ = Agent.objects.create(
+                    agent = Agent.objects.create(
                         name=serializer.validated_data["agent_name"],
                         avatar_url=serializer.validated_data.get(
                             "agent_avatar_url", ""
