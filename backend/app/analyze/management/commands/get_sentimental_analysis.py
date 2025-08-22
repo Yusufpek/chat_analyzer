@@ -49,7 +49,7 @@ class Command(CustomBaseCommand):
             "neutral": 0,
         }
 
-        for conversation in conversations[:1]:
+        for conversation in conversations:
             self.stdout.write(f"Analyzing conversation ID: {conversation.id}")
             try:
                 messages = ChatMessage.objects.filter(
