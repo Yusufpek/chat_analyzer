@@ -5,7 +5,7 @@ class EngineType(enum.Enum):
     OPENAI = "openai"
     GEMINI = "gemini"
     REPLICATE = "replicate"
-    ANTHROPIC_CLOUD = "cloud"
+    ANTHROPIC_CLAUDE = "claude"
 
     @staticmethod
     def choices():
