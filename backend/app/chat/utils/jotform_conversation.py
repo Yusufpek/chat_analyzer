@@ -9,6 +9,7 @@ def get_chat_messages(
     agent_id,
     chat_id,
     logger,
+    filter=None,
     chat_message_ids=None,
 ):
     if chat_message_ids is None:
@@ -17,6 +18,7 @@ def get_chat_messages(
     response_code, content = service.get_chat_history(
         agent_id=agent_id,
         chat_id=chat_id,
+        filter=filter,
     )
     if response_code != 200:
         logger.error(
@@ -59,12 +61,16 @@ def get_conversations(
     agent_id,
     user_id,
     logger,
+    filter=None,
     conversation_ids=None,
 ):
     if conversation_ids is None:
         conversation_ids = Conversation.objects.values_list("id", flat=True)
 
-    response_code, content = service.get_agent_conversations(agent_id=agent_id)
+    response_code, content = service.get_agent_conversations(
+        agent_id=agent_id,
+        filter=filter,
+    )
     conversations = []
     if response_code != 200:
         logger.error(

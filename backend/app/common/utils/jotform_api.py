@@ -79,6 +79,7 @@ class JotFormAPIService:
         Retrieve chat history for a specific chat ID from JotForm API.
         :param chat_id: The ID of the chat to fetch history for.
         :return: A tuple containing the response code and content.
+
         Example of filter:
         {
             "updated_at:gt": "2025-08-12 09:52:40"
@@ -117,6 +118,7 @@ class JotFormAPIService:
         self,
         agent_id="",
         chat_id="",
+        filter=None,
     ):
         """
         Retrieve chats for a specific agent from JotForm API.
@@ -124,6 +126,11 @@ class JotFormAPIService:
         param chat_id: The ID of the chat to fetch history for.
         :return: A tuple containing the response code and content.
         :rtype: tuple(int, dict)
+
+        Example of filter:
+        {
+            "created_at:gt": "2025-08-12 09:52:40"
+        }
         """
         if not self.api_key:
             return 100, {
@@ -135,6 +142,7 @@ class JotFormAPIService:
             params={
                 "apiKey": self.api_key,
                 "orderby": "created_at,asc",
+                "filter": json.dumps(filter) if filter else None,
                 "limit": 500,
             },
         )

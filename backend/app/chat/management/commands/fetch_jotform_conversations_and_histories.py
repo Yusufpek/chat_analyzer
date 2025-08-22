@@ -8,6 +8,9 @@ from chat.utils.jotform_conversation import (
     get_conversations,
 )
 
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 
 class Command(CustomBaseCommand):
     help = "Fetch JotForm agent conversations"
@@ -50,6 +53,13 @@ class Command(CustomBaseCommand):
                 user=user,
             ).values_list("id", flat=True)
         )
+
+        # Offset for JotForm timezone difference
+        time_filter = datetime.now(ZoneInfo("America/New_York")) - timedelta(
+            minutes=max(connection.sync_interval, 30)
+        )
+        time_filter_str = time_filter.strftime("%Y-%m-%d %H:%M:%S")
+
         new_conversation_ids = []
 
         conversations = []
@@ -60,7 +70,8 @@ class Command(CustomBaseCommand):
                 agent_id,
                 user.id,
                 self.logger,
-                conversation_ids,
+                filter={"updated_at:gt": time_filter_str},
+                conversation_ids=conversation_ids,
             )
             if convs:
                 conversations.extend(convs)
@@ -89,6 +100,7 @@ class Command(CustomBaseCommand):
                 agent_id,
                 new_chat_id,
                 self.logger,
+                filter={"created_at:gt": time_filter_str},
                 chat_message_ids=chat_message_ids,
             )
             if chat_messages:
