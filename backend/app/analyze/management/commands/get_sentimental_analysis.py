@@ -1,5 +1,7 @@
+from analyze.utils.engine_types import EngineType
 from analyze.utils.openai_service import OpenAIService
 from analyze.utils.replicate_service import ReplicateService
+from analyze.utils.claude_service import ClaudeService
 from chat.models.conversation import Conversation, ChatMessage
 from chat.serializers.conversation import ChatMessageSerializer
 from common.base.base_command import CustomBaseCommand
@@ -14,21 +16,24 @@ class Command(CustomBaseCommand):
         parser.add_argument(
             "--engine",
             type=str,
-            default="openai",
+            default=EngineType.OPENAI.value,
             help="The AI service engine to test (default: openai).",
         )
 
     def process(self, *args, **options):
         engine = options["engine"].lower()
-        if engine == "openai":
+        if engine == EngineType.OPENAI.value:
             service = OpenAIService()
             self.logger.info("Using OpenAI Service...")
-        elif engine == "replicate":
+        elif engine == EngineType.REPLICATE.value:
             service = ReplicateService()
             self.logger.info("Using Replicate Service...")
+        elif engine == EngineType.ANTHROPIC_CLAUDE.value:
+            service = ClaudeService()
+            self.logger.info("Using Claude Service...")
         else:
             self.logger.error(
-                f"Unsupported engine: {engine}. Supported engines are: openai, replicate."
+                f"Unsupported engine: {engine}. Supported engines are: openai, replicate, claude."
             )
             return
 
@@ -49,7 +54,7 @@ class Command(CustomBaseCommand):
             "neutral": 0,
         }
 
-        for conversation in conversations[:1]:
+        for conversation in conversations:
             self.stdout.write(f"Analyzing conversation ID: {conversation.id}")
             try:
                 messages = ChatMessage.objects.filter(

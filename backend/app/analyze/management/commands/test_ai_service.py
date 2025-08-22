@@ -1,6 +1,7 @@
 from common.base.base_command import CustomBaseCommand
 from analyze.utils.openai_service import OpenAIService
 from analyze.utils.replicate_service import ReplicateService
+from analyze.utils.claude_service import ClaudeService
 
 
 class Command(CustomBaseCommand):
@@ -27,6 +28,10 @@ class Command(CustomBaseCommand):
                 "text": "Hello, how are you?",
             }
             self.logger.info("Testing Replicate Service...")
+        elif engine == "claude":
+            service = ClaudeService()
+            content = "Hello, how are you?"
+            self.logger.info("Testing Claude Service...")
         else:
             self.logger.error(
                 f"Unsupported engine: {engine}. Supported engines are: openai, replicate."
@@ -44,4 +49,4 @@ class Command(CustomBaseCommand):
         except Exception as e:
             self.logger.error(f"An error occurred: {str(e)}")
         else:
-            self.logger.error("AI Service is working correctly.")
+            self.logger.info("AI Service is working correctly.")
