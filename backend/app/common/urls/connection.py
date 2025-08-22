@@ -24,6 +24,11 @@ connection_urlpatterns = [
         name="agent_api_url",
     ),
     path(
+        "agent/<slug:agent_id>/",
+        AgentAPIView.as_view(),
+        name="agent_api_url",
+    ),
+    path(
         "jotform/agents/",
         JotFormAgentAPIView.as_view(),
         name="jotform_agent_api_url",
