@@ -164,6 +164,18 @@ class AgentAPIView(BaseAPIView):
         Fetches all JotForm agent IDs for the authenticated user.
         """
         agents = Agent.objects.filter(connection__user=request.user)
+        if kwargs.get("connection_type"):
+            connection_type = kwargs.get("connection_type")
+            if not Connection.objects.filter(
+                user=request.user,
+                connection_type=connection_type,
+            ).exists():
+                return ResponseStatus.NOT_FOUND, {"error": "Connection not found."}
+
+            agents = agents.filter(connection__connection_type=connection_type)
+            if not agents:
+                return ResponseStatus.NOT_FOUND, {"error": "Agents not found."}
+
         serializer = AgentSerializer(agents, many=True)
         return ResponseStatus.SUCCESS, serializer.data
 
