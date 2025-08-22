@@ -19,7 +19,7 @@ connection_urlpatterns = [
         name="connection_api_url",
     ),
     path(
-        "connection/file-source/",
+        "file/connection/",
         FileSourceView.as_view(),
         name="file_source_api_url",
     ),

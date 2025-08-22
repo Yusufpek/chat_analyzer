@@ -36,18 +36,19 @@ class ConnectionView(BaseAPIView):
             ).exists():
                 return ResponseStatus.CONFLICT, {"errors": "Connection already exists."}
 
-            is_valid = JotFormAPIService.check_api_key(data["api_key"])
-            if not is_valid:
-                return ResponseStatus.BAD_REQUEST, {"errors": "Invalid API key."}
+            if conn_type == SOURCE_JOTFORM:
+                is_valid = JotFormAPIService.check_api_key(data["api_key"])
+                if not is_valid:
+                    return ResponseStatus.BAD_REQUEST, {"errors": "Invalid API key."}
 
-            connection = serializer.save()
+                connection = serializer.save()
 
-            # Serialize the connection and agents
-            connection_serializer = ConnectionSerializer(connection)
+                # Serialize the connection and agents
+                connection_serializer = ConnectionSerializer(connection)
 
-            return ResponseStatus.CREATED, {
-                "content": connection_serializer.data,
-            }
+                return ResponseStatus.CREATED, {
+                    "content": connection_serializer.data,
+                }
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
     def delete_request(self, request, *args, **kwargs):
@@ -76,16 +77,30 @@ class ConnectionView(BaseAPIView):
 
     def put_request(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
+        conn_type = kwargs.get("connection_type")
+
         connection = Connection.objects.filter(
-            connection_type=data.get("connection_type"),
+            connection_type=conn_type,
             api_key=data.get("api_key"),
             user=request.user,
         ).first()
         if not connection:
             return ResponseStatus.NOT_FOUND, {"errors": "Connection not found."}
 
+        if "connection_type" in data and conn_type != data["connection_type"]:
+            return ResponseStatus.BAD_REQUEST, {
+                "errors": "Connection type cannot be changed."
+            }
+
         serializer = ConnectionSerializer(connection, data=data, partial=True)
         if serializer.is_valid():
+            if (
+                "connection_type" in data
+                and data["connection_type"] != connection.connection_type
+            ):
+                return ResponseStatus.BAD_REQUEST, {
+                    "errors": "Connection type cannot be changed."
+                }
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
