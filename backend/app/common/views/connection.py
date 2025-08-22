@@ -199,6 +199,24 @@ class AgentAPIView(BaseAPIView):
         except Exception as e:
             return ResponseStatus.BAD_REQUEST, {"error": str(e)}
 
+    def put_request(self, request, *args, **kwargs):
+        agent_id = kwargs.get("agent_id")
+        agent = Agent.objects.filter(id=agent_id, connection__user=request.user).first()
+        if not agent:
+            return ResponseStatus.NOT_FOUND, {"error": "Agent not found."}
+        data = request.data.copy()
+        if "id" in data and str(data["id"]) != str(agent_id):
+            return ResponseStatus.BAD_REQUEST, {"error": "Agent ID cannot be changed."}
+        if "connection" in data and data["connection"] != agent.connection.id:
+            return ResponseStatus.BAD_REQUEST, {
+                "error": "Connection cannot be changed."
+            }
+        serializer = AgentSerializer(agent, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return ResponseStatus.ACCEPTED, serializer.data
+        return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
+
 
 class JotFormAgentAPIView(BaseAPIView):
     def get_request(self, request, *args, **kwargs):
