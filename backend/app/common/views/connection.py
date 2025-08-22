@@ -141,7 +141,8 @@ class AgentAPIView(BaseAPIView):
         Creates a new JotForm agent ID for the authenticated user.
         """
         connection = Connection.objects.filter(
-            user=request.user, connection_type="jotform"
+            user=request.user,
+            connection_type=SOURCE_JOTFORM,
         ).first()
         if not connection:
             return ResponseStatus.BAD_REQUEST, {
