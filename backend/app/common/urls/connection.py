@@ -14,6 +14,11 @@ connection_urlpatterns = [
         name="connection_api_url",
     ),
     path(
+        "connection/<slug:connection_type>/",
+        ConnectionView.as_view(),
+        name="connection_api_url",
+    ),
+    path(
         "connection/file-source/",
         FileSourceView.as_view(),
         name="file_source_api_url",

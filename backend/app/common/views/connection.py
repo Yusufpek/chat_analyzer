@@ -50,6 +50,30 @@ class ConnectionView(BaseAPIView):
             }
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
+    def delete_request(self, request, *args, **kwargs):
+        connection_type = kwargs.get("connection_type")
+        connection = Connection.objects.filter(
+            connection_type=connection_type, user=request.user
+        ).first()
+        if not connection:
+            return ResponseStatus.NOT_FOUND, {"errors": "Connection not found."}
+        try:
+            with transaction.atomic():
+                agent_ids = Agent.objects.filter(connection=connection).values_list(
+                    "id", flat=True
+                )
+                ChatMessage.objects.filter(
+                    conversation__agent_id__in=agent_ids
+                ).delete()
+                Conversation.objects.filter(agent_id__in=agent_ids).delete()
+                Agent.objects.filter(id__in=agent_ids).delete()
+                connection.delete()
+            return ResponseStatus.SUCCESS, {
+                "message": "Connection deleted successfully with all associated data."
+            }
+        except Exception as e:
+            return ResponseStatus.BAD_REQUEST, {"errors": str(e)}
+
     def put_request(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
         connection = Connection.objects.filter(
