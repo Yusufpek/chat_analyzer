@@ -17,6 +17,7 @@ from chat.utils.file_conversations import (
 from chat.utils.jotform_conversation import get_agents
 from common.constants.sources import SOURCE_FILE, SOURCE_JOTFORM
 from common.utils.jotform_api import JotFormAPIService
+from chat.models.conversation import Conversation, ChatMessage
 
 
 class ConnectionView(BaseAPIView):
@@ -160,8 +161,19 @@ class AgentAPIView(BaseAPIView):
         agent = Agent.objects.filter(id=agent_id, connection__user=request.user).first()
         if not agent:
             return ResponseStatus.NOT_FOUND, {"error": "Agent not found."}
-        agent.delete()
-        return ResponseStatus.SUCCESS, {"message": "Agent deleted successfully."}
+        try:
+            with transaction.atomic():
+                conversation_ids = Conversation.objects.filter(
+                    agent_id=agent.id
+                ).values_list("id", flat=True)
+                ChatMessage.objects.filter(
+                    conversation_id__in=conversation_ids
+                ).delete()
+                Conversation.objects.filter(id__in=conversation_ids).delete()
+                agent.delete()
+            return ResponseStatus.SUCCESS, {"message": "Agent deleted successfully."}
+        except Exception as e:
+            return ResponseStatus.BAD_REQUEST, {"error": str(e)}
 
 
 class JotFormAgentAPIView(BaseAPIView):
