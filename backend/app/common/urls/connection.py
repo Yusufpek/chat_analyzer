@@ -3,6 +3,7 @@ from django.urls import path
 from common.views.connection import (
     ConnectionView,
     AgentView,
+    AgentDetailView,
     FileSourceView,
     JotFormAgentView,
 )
@@ -31,6 +32,11 @@ connection_urlpatterns = [
     path(
         "agent/<slug:agent_id>/",
         AgentView.as_view(),
+        name="agent_api_url",
+    ),
+    path(
+        "agent/<slug:agent_id>/details",
+        AgentDetailView.as_view(),
         name="agent_api_url",
     ),
     path(
