@@ -40,7 +40,7 @@ class Command(CustomBaseCommand):
             agent_id,
             user.id,
             self.logger,
-            conversation_ids,
+            conversation_ids=conversation_ids,
         )
 
         if conversations:
