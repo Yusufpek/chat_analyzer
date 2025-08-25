@@ -60,9 +60,8 @@ class Command(CustomBaseCommand):
         )
         time_filter_str = time_filter.strftime("%Y-%m-%d %H:%M:%S")
 
-        new_conversation_ids = []
-
         conversations = []
+        new_conversations_dict = {}
         for agent_id in agent_ids:
             # request
             convs = get_conversations(
@@ -75,9 +74,8 @@ class Command(CustomBaseCommand):
             )
             if convs:
                 conversations.extend(convs)
-                new_conversation_ids.extend(
-                    [conv.id for conv in convs if conv.id not in conversation_ids]
-                )
+                for conv in convs:
+                    new_conversations_dict[conv.id] = agent_id
 
         if conversations:
             Conversation.objects.bulk_create(conversations)
@@ -93,8 +91,8 @@ class Command(CustomBaseCommand):
             conversation__source=SOURCE_JOTFORM,
             conversation__user=user,
         ).values_list("id", flat=True)
-        conversation_ids.extend(new_conversation_ids)
-        for new_chat_id in conversation_ids:
+
+        for new_chat_id, agent_id in new_conversations_dict.items():
             chat_messages = get_chat_messages(
                 service,
                 agent_id,
