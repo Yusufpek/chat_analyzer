@@ -170,7 +170,7 @@ class FileSourceView(BaseAPIView):
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 
-class AgentAPIView(BaseAPIView):
+class AgentView(BaseAPIView):
     def get_request(self, request, *args, **kwargs):
         """
         Fetches all JotForm agent IDs for the authenticated user.
@@ -255,7 +255,7 @@ class AgentAPIView(BaseAPIView):
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 
-class JotFormAgentAPIView(BaseAPIView):
+class JotFormAgentView(BaseAPIView):
     def get_request(self, request, *args, **kwargs):
         """
         Fetches all JotForm agent IDs for the authenticated user.

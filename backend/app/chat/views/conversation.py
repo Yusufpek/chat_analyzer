@@ -5,7 +5,7 @@ from chat.serializers.conversation import ChatMessageSerializer, ConversationSer
 from chat.models.conversation import ChatMessage, Conversation
 
 
-class ConversationListAPIView(BaseListAPIView):
+class ConversationListView(BaseListAPIView):
     """
     API view to list conversations.
     """
@@ -29,7 +29,7 @@ class ConversationListAPIView(BaseListAPIView):
         return queryset.order_by("-created_at")
 
 
-class ConversationDetailAPIView(BaseAPIView):
+class ConversationDetailView(BaseAPIView):
     """
     API view to retrieve a specific conversation by ID.
     """
@@ -51,7 +51,7 @@ class ConversationDetailAPIView(BaseAPIView):
         ).data
 
 
-class ConversationMessagesAPIView(BaseListAPIView):
+class ConversationMessagesView(BaseListAPIView):
     """
     API view to retrieve messages for a specific conversation by ID.
     """

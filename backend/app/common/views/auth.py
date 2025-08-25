@@ -12,7 +12,7 @@ from common.serializers.user import (
 )
 
 
-class UserRegisterAPIView(BaseAPIView):
+class UserRegisterView(BaseAPIView):
     """
     An endpoint for the client to create a new User.
     """
