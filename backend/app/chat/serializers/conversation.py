@@ -24,7 +24,6 @@ class ConversationSerializer(serializers.Serializer):
         return {
             "id": instance.id,
             "created_at": instance.created_at,
-            "assistant_avatar_url": instance.assistant_avatar_url,
             "source": instance.source,
             "chat_type": instance.chat_type,
             "status": instance.status,
