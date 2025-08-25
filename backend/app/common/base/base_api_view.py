@@ -11,18 +11,27 @@ class BaseAPIView(generics.GenericAPIView):
     authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def delete_request(self, request, *args, **kwargs) -> dict:
+        return ResponseStatus.BAD_REQUEST, {"message": "Delete request not implemented"}
+
     def get_request(self, request) -> dict:
-        return ResponseStatus.SUCCESS, {"message": "Request processed successfully"}
+        return ResponseStatus.BAD_REQUEST, {"message": "Get request not implemented"}
 
     def post_request(self, request, *args, **kwargs) -> dict:
-        return ResponseStatus.CREATED, {"message": "Resource created successfully"}
+        return ResponseStatus.BAD_REQUEST, {"message": "Post request not implemented"}
 
     def put_request(self, request, *args, **kwargs) -> dict:
-        return ResponseStatus.ACCEPTED, {"message": "Resource updated successfully"}
+        return ResponseStatus.BAD_REQUEST, {"error": "Put request not implemented"}
 
     def get(self, request, *args, **kwargs):
         start = datetime.now()
         response_status, content = self.get_request(request, *args, **kwargs)
+        duration = (datetime.now() - start).total_seconds() * 1000
+        return get_status_to_response(response_status, content, duration)
+
+    def delete(self, request, *args, **kwargs):
+        start = datetime.now()
+        response_status, content = self.delete_request(request, *args, **kwargs)
         duration = (datetime.now() - start).total_seconds() * 1000
         return get_status_to_response(response_status, content, duration)
 

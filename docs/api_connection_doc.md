@@ -261,3 +261,36 @@ Success (200 OK)
   "duration": "10.354000000000001 ms"
 }
 ```
+
+### Delete Agent
+
+#### Endpoint: `/api/agent/<agent_id>`
+
+**Method**: `DELETE`  
+**Description**: Deletes an agent for the authenticated user.
+
+**Response**:
+Success (200 OK)
+
+```json
+{
+  "status": "SUCCESS",
+  "content": {
+    "message": "Agent deleted successfully."
+  },
+  "duration": "44.416 ms"
+}
+```
+
+**Errors:**
+Not Found (404)
+
+```json
+{
+  "status": "error",
+  "content": {
+    "error": "Agent not found."
+  },
+  "duration": "10.68 ms"
+}
+```

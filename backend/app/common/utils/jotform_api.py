@@ -56,6 +56,23 @@ class JotFormAPIService:
         log.save()
         return response
 
+    @staticmethod
+    def check_api_key(api_key):
+        """
+        Check if the provided JotForm API key is valid.
+        :param api_key: JotForm API key to validate.
+        :return: True if valid, False otherwise.
+        :rtype: bool
+        """
+
+        response = requests.get(
+            f"{JOTFORM_API_BASE_URL}/user",
+            params={"apiKey": api_key},
+        )
+        data = response.json()
+        response_code = data.get("responseCode", response.status_code)
+        return response_code == 200
+
     def get_user_details(self):
         """
         Retrieve user details from JotForm API.

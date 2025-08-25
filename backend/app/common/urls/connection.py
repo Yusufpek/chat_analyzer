@@ -14,7 +14,12 @@ connection_urlpatterns = [
         name="connection_api_url",
     ),
     path(
-        "connection/file-source/",
+        "connection/<slug:connection_type>/",
+        ConnectionView.as_view(),
+        name="connection_api_url",
+    ),
+    path(
+        "file/connection/",
         FileSourceView.as_view(),
         name="file_source_api_url",
     ),
@@ -24,12 +29,17 @@ connection_urlpatterns = [
         name="agent_api_url",
     ),
     path(
-        "jotform/agents/",
-        JotFormAgentAPIView.as_view(),
-        name="jotform_agent_api_url",
+        "agent/<slug:agent_id>/",
+        AgentAPIView.as_view(),
+        name="agent_api_url",
     ),
     path(
-        "jotform/agents/<slug:option>/",
+        "connection/<slug:connection_type>/agent/",
+        AgentAPIView.as_view(),
+        name="agent_api_url",
+    ),
+    path(
+        "jotform/agents/",
         JotFormAgentAPIView.as_view(),
         name="jotform_agent_api_url",
     ),
