@@ -2,6 +2,10 @@ from .ai_service import AIService, EngineType
 
 
 class ReplicateService(AIService):
+    """
+    Service class for interacting with Replicate's API.
+    """
+
     version = None
 
     def __init__(

@@ -3,6 +3,10 @@ from django.conf import settings
 
 
 class CustomAuthentication(JWTAuthentication):
+    """
+    Custom authentication class that retrieves the JWT token from cookies.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

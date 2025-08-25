@@ -8,6 +8,10 @@ from datetime import datetime
 
 @shared_task
 def get_sentimental_analysis_task():
+    """
+    Task to perform sentimental analysis on conversations.
+    """
+
     log = Log(task_name="Get Sentimental Analysis", category=Log.Category.ANALYTICS)
     log.save()
     try:

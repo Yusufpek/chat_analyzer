@@ -8,19 +8,35 @@ from .response import ResponseStatus, get_status_to_response, code_to_status
 
 
 class BaseAPIView(generics.GenericAPIView):
+    """
+    Base API view with common functionality.
+    """
+
     authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete_request(self, request, *args, **kwargs) -> dict:
+        """
+        Handles DELETE requests.
+        """
         return ResponseStatus.BAD_REQUEST, {"message": "Delete request not implemented"}
 
     def get_request(self, request) -> dict:
+        """
+        Handles GET requests.
+        """
         return ResponseStatus.BAD_REQUEST, {"message": "Get request not implemented"}
 
     def post_request(self, request, *args, **kwargs) -> dict:
+        """
+        Handles POST requests.
+        """
         return ResponseStatus.BAD_REQUEST, {"message": "Post request not implemented"}
 
     def put_request(self, request, *args, **kwargs) -> dict:
+        """
+        Handles PUT requests.
+        """
         return ResponseStatus.BAD_REQUEST, {"error": "Put request not implemented"}
 
     def get(self, request, *args, **kwargs):
@@ -57,6 +73,10 @@ class BaseAPIView(generics.GenericAPIView):
 
 
 class BaseListAPIView(generics.ListAPIView):
+    """
+    Base List API view with common functionality.
+    """
+
     def get_request(self, request) -> dict:
         return ResponseStatus.SUCCESS, {"message": "List retrieved successfully"}
 

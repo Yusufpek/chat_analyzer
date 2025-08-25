@@ -3,6 +3,10 @@ from .ai_service import AIService, EngineType
 
 
 class OpenAIService(AIService):
+    """
+    Service class for interacting with OpenAI's API.
+    """
+
     model = None
 
     def __init__(self, model: str = "gpt-4o-mini"):

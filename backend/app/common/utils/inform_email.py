@@ -6,6 +6,9 @@ SENDER_EMAIL = os.environ.get("MAIL")
 
 
 def send_register_email(username, email):
+    """
+    Sends a registration email to the user.
+    """
     subject = "Welcome to ChatAnalyzer!"
     message = f"""
     <html>

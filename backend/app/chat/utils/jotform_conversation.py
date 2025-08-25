@@ -12,6 +12,19 @@ def get_chat_messages(
     filter=None,
     chat_message_ids=None,
 ):
+    """
+    Fetch chat messages for a specific chat.
+        If chat_message_ids is provided, only messages not in that list will be fetched.
+        If chat_message_ids is None, all messages will be fetched.
+    :param service: JotFormAPIService instance
+    :param agent_id: ID of the agent
+    :param chat_id: ID of the chat
+    :param logger: Logger instance
+    :param filter: Optional filter for fetching messages
+    :param chat_message_ids: Optional list of existing chat message IDs to exclude
+    :return: List of ChatMessage instances
+    """
+
     if chat_message_ids is None:
         chat_message_ids = ChatMessage.objects.values_list("id", flat=True)
 
@@ -64,6 +77,19 @@ def get_conversations(
     filter=None,
     conversation_ids=None,
 ):
+    """
+    Fetch conversations for a specific agent.
+        If conversation_ids is provided, only conversations not in that list will be fetched.
+        If conversation_ids is None, all conversations will be fetched.
+    :param service: JotFormAPIService instance
+    :param agent_id: ID of the agent
+    :param user_id: ID of the user
+    :param logger: Logger instance
+    :param filter: Optional filter for fetching conversations
+    :param conversation_ids: Optional list of existing conversation IDs to exclude
+    :return: List of Conversation instances
+    """
+
     if conversation_ids is None:
         conversation_ids = Conversation.objects.values_list("id", flat=True)
 

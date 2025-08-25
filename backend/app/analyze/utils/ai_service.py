@@ -6,6 +6,10 @@ from .engine_types import EngineType
 
 
 class AIService:
+    """
+    Base class for AI services.
+    """
+
     engine = EngineType.OPENAI
     bearer_token = None
     base_url = None
