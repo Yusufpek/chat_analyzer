@@ -5,6 +5,7 @@
 #### Endpoint: `/api/connection/`
 
 **Method**: `POST`  
+**Authentication:** Required (Login with tokens in cookies) <br>
 **Description**: Creates a new connection for the authenticated user. Ensures that duplicate connections of the same type are not allowed.
 
 **Request Body**:
@@ -56,9 +57,9 @@ Error (409 Conflict)
 
 ### Get All Agents
 
-#### Endpoint: `/api/jotform/agents/`
-
-**Method**: `GET`  
+**Endpoint:** `/api/jotform/agents/` <br>
+**Method**: `GET` <br>
+**Authentication:** Required (Login with tokens in cookies) <br>
 **Description**: Fetches all synced and unsynced JotForm agents for the authenticated user.
 
 **Response**:
@@ -111,73 +112,13 @@ Success (200 OK)
 }
 ```
 
-### Get Synced or Unsynced JotForm Agents
-
-#### Endpoint: `/api/jotform/agents/<option>/`
-
-**Method**: `GET`  
-**Description**: Fetches either synced or unsynced JotForm agents based on the provided option for the authenticated user.
-
-**URL Parameters**:
-
-- `option`: Specify `synced` or `unsynced` to filter the agents.
-
-**Response**:
-Success (200 OK)
-
-```json
-{
-  "status": "SUCCESS",
-  "content": [
-    {
-      "id": "0198a7c05a017e45a9a648ec18e2545d4923",
-      "avatar_url": null,
-      "name": "hu_cs"
-    },
-    {
-      "id": "01989df5271475be9088f614bbe69043fe7c",
-      "avatar_url": "https://cdn.jotfor.ms/assets/agent-avatars/avatar_icon_811.png",
-      "name": "test_2"
-    },
-    {
-      "id": "01989e1b648077d78a5f89a9a75ec75030c4",
-      "avatar_url": null,
-      "name": "test_1"
-    },
-    {
-      "id": "0198a30c41187d74a833e8b4f0b413643ff9",
-      "avatar_url": "https://cdn.jotfor.ms/assets/agent-avatars/avatar_icon_821.png",
-      "name": "Noupe: Noupe"
-    },
-    {
-      "id": "01989e13c8ff7245a9e77b61bcf744fbd7f5",
-      "avatar_url": "https://cdn.jotfor.ms/assets/agent-avatars/avatar_icon_267.png",
-      "name": "Lina: Customer Support Agent"
-    }
-  ],
-  "duration": "20.227999999999998 ms"
-}
-```
-
-Error (400 Bad Request)
-
-```json
-{
-  "status": "error",
-  "content": {
-    "error": "Invalid option."
-  },
-  "duration": "0.032 ms"
-}
-```
-
 ## 3. Agent API
 
 ### Create Agent
 
-#### Endpoint: `/api/agent/`
-
-**Method**: `POST`  
+**Endpoint**: `/api/agent/` <br>
+**Method**: `POST` <br>
+**Authentication:** Required (Login with tokens in cookies) <br>
 **Description**: Creates a new agent for the authenticated user.
 
 **Request Body**:
@@ -225,9 +166,9 @@ Error (400 Bad Request - Agent ID exists)
 
 ### Get Agents
 
-#### Endpoint: `/api/agent/`
-
-**Method**: `GET`  
+**Endpoint**: `/api/agent/`
+**Method**: `GET` <br>
+**Authentication:** Required (Login with tokens in cookies) <br>
 **Description**: Retrieves a list of agents for the authenticated user.
 
 **Response**:
@@ -264,9 +205,9 @@ Success (200 OK)
 
 ### Delete Agent
 
-#### Endpoint: `/api/agent/<agent_id>`
-
-**Method**: `DELETE`  
+**Endpoint**: `/api/agent/<agent_id>` <br>
+**Method**: `DELETE` <br>
+**Authentication:** Required (Login with tokens in cookies) <br>
 **Description**: Deletes an agent for the authenticated user.
 
 **Response**:
