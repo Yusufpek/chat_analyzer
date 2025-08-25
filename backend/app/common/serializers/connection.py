@@ -4,6 +4,8 @@ from common.constants.sources import SOURCE_JOTFORM, SOURCE_CHATGPT, SOURCE_FILE
 
 
 class ConnectionSerializer(serializers.ModelSerializer):
+    """Serializer for Connection model."""
+
     class Meta:
         model = Connection
         fields = [
@@ -41,6 +43,8 @@ class ConnectionSerializer(serializers.ModelSerializer):
 
 
 class AgentSerializer(serializers.ModelSerializer):
+    """Serializer for Agent model."""
+
     id = serializers.CharField(required=True)
 
     class Meta:
@@ -81,6 +85,8 @@ class AgentSerializer(serializers.ModelSerializer):
 
 
 class FileSourceSerializer(serializers.Serializer):
+    """Serializer for file source connections."""
+
     agent_name = serializers.CharField(max_length=255)
     file = serializers.FileField()
     agent_avatar_url = serializers.CharField(

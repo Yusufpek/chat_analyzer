@@ -3,6 +3,8 @@ from chat.models import ChatMessage
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
+    """Serializer for chat messages."""
+
     class Meta:
         model = ChatMessage
         fields = [
@@ -15,6 +17,8 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.Serializer):
+    """Serializer for conversations."""
+
     def to_representation(self, instance):
         last_message = self.context.get("last_message")
         return {
