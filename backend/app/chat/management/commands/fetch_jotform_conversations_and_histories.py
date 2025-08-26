@@ -55,9 +55,17 @@ class Command(CustomBaseCommand):
         )
 
         # Offset for JotForm timezone difference
-        time_filter = datetime.now(ZoneInfo("America/New_York")) - timedelta(
-            minutes=max(connection.sync_interval, 30)
+        time_filter = (
+            datetime.now(ZoneInfo("America/New_York"))
+            - timedelta(minutes=max(connection.sync_interval, 30))
+            - timedelta(days=1)
         )
+
+        last_conversations = Conversation.objects.filter(
+            source=SOURCE_JOTFORM, user=user, created_at__gte=time_filter
+        ).values("id", "agent_id")
+        last_conversations = {cov["id"]: cov["agent_id"] for cov in last_conversations}
+
         time_filter_str = time_filter.strftime("%Y-%m-%d %H:%M:%S")
 
         conversations = []
@@ -92,6 +100,7 @@ class Command(CustomBaseCommand):
             conversation__user=user,
         ).values_list("id", flat=True)
 
+        new_conversations_dict.update(last_conversations)
         for new_chat_id, agent_id in new_conversations_dict.items():
             chat_messages = get_chat_messages(
                 service,
