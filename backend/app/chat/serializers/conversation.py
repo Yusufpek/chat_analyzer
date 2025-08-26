@@ -28,6 +28,8 @@ class ConversationSerializer(serializers.Serializer):
             "chat_type": instance.chat_type,
             "status": instance.status,
             "agent_id": instance.agent_id,
+            "analysis_result": instance.analysis_result,
+            "analysis_details": instance.analysis_details,
             "last_message": instance.last_message
             if hasattr(instance, "last_message")
             else ChatMessageSerializer(last_message).data,
