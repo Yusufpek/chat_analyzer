@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Box,
   Container,
@@ -7,15 +7,24 @@ import {
   Button,
   VStack,
   HStack,
-  Icon,
   FileUpload,
-  Input,
 } from '@chakra-ui/react';
+import AddConversationModal from '@components/AddConversationModal';
+import JotformSignInModal from '@components/JotformSignInModal';
+import OpenAISignInModal from '@components/OpenAISignInModal';
+import { useNavigate } from 'react-router-dom';
+import { routePaths } from '@constants/routePaths';
 import { LuUpload } from 'react-icons/lu';
-import { RiArrowRightLine } from 'react-icons/ri';
+import { useStore } from '@store/index';
 
 const Landing = () => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isJotformModalOpen, setIsJotformModalOpen] = useState(false);
+  const [isOpenAIModalOpen, setIsOpenAIModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const authStatus = useStore((s: any) => s.authStatus);
   const primaryColor = '#0A0807';
   const secondaryColor = '#B6ED43';
 
@@ -35,7 +44,47 @@ const Landing = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
+    if (authStatus !== 'authenticated') {
+      navigate(routePaths.login());
+      return;
+    }
+    // Restrict to single file
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const firstFile = files[0];
+      setSelectedFile(firstFile);
+      setIsAddModalOpen(true);
+    }
   };
+
+  const handleHiddenInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (authStatus !== 'authenticated') {
+      navigate(routePaths.login());
+      return;
+    }
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      const firstFile = target.files[0];
+      setSelectedFile(firstFile);
+      setIsAddModalOpen(true);
+    }
+  }, [authStatus, navigate]);
+
+  const handleDropzoneClick = (e: React.MouseEvent) => {
+    if (authStatus !== 'authenticated') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate(routePaths.login());
+    }
+  };
+
+  const handleModalClose = useCallback(() => {
+    setIsAddModalOpen(false);
+  }, []);
+
+  const handleModalFinish = useCallback(() => {
+    navigate(routePaths.analyze());
+  }, [navigate]);
 
   // Add delete buttons and click handler
   React.useEffect(() => {
@@ -94,6 +143,7 @@ const Landing = () => {
   }, []);
 
   return (
+    <>
     <Box>
       {/* Top Section - Gradient Background */}
       <Box py={16}>
@@ -143,10 +193,10 @@ const Landing = () => {
             <FileUpload.Root 
               maxW="xl" 
               alignItems="stretch" 
-              maxFiles={5}
-              accept={["text/plain", "text/csv", "application/json", ".txt", ".csv", ".json"]}
+              maxFiles={1}
+              accept={["text/csv", "application/json", ".csv", ".json"]}
             >
-              <FileUpload.HiddenInput />
+              <FileUpload.HiddenInput onChange={handleHiddenInputChange} />
               <FileUpload.Dropzone
                 border="2px dashed"
                 borderColor={isDragOver ? "#D200D3" : "#615568"}
@@ -167,13 +217,15 @@ const Landing = () => {
                 transition="all 0.3s ease"
                 py={12}
                 px={8}
+                onClick={handleDropzoneClick}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
+                pointerEvents={isAddModalOpen ? 'none' : 'auto'}
               >
-                <Icon size="xl" color="#615568">
+                <Box color="#615568" fontSize="4xl">
                   <LuUpload />
-                </Icon>
+                </Box>
                 <FileUpload.DropzoneContent>
                   <Box 
                     fontSize="xl" 
@@ -184,7 +236,7 @@ const Landing = () => {
                     Drag and drop your conversation files here
                   </Box>
                   <Box color="#615568" fontSize="md">
-                    .txt, .csv, .json up to 10MB
+                    .csv, .json up to 10MB
                   </Box>
                 </FileUpload.DropzoneContent>
               </FileUpload.Dropzone>
@@ -197,71 +249,45 @@ const Landing = () => {
               <Box flex={1} h="1px" bg="gray.200" />
             </HStack>
             
-            {/* API Key Input Section */}
+            {/* Jotform Sign-in Section */}
             <VStack gap={4} w="full" maxW="md">
-              <Text 
-                fontSize="lg" 
-                fontWeight="semibold" 
+              <Button
+                size="lg"
+                bg="#B6ED43"
                 color="#0A0807"
-                textAlign="center"
+                _hover={{ 
+                  bg: '#A0D936',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 20px rgba(182, 237, 67, 0.3)'
+                }}
+                _active={{ bg: '#8BC530' }}
+                borderRadius="xl"
+                px={8}
+                py={4}
+                fontSize="md"
+                fontWeight="semibold"
+                transition="all 0.2s ease"
+                onClick={() => setIsJotformModalOpen(true)}
               >
-                Enter your Jotform API KEY
-              </Text>
-              <HStack gap={3} w="full">
-                <Input
-                  placeholder="Paste your Jotform API key here..."
-                  size="lg"
-                  bg="white"
-                  border="2px solid"
-                  borderColor="#615568"
-                  borderRadius="xl"
-                  color="#0A0807"
-                  _placeholder={{ 
-                    color: "#615568",
-                    opacity: 0.7
-                  }}
-                  _focus={{
-                    borderColor: "#D200D3",
-                    boxShadow: "0 0 0 3px rgba(210, 0, 211, 0.1)",
-                    outline: "none"
-                  }}
-                  _hover={{
-                    borderColor: "#D200D3"
-                  }}
-                  transition="all 0.2s ease"
-                  px={6}
-                  py={4}
-                  fontSize="md"
-                  fontWeight="medium"
-                  flex={1}
-                />
-                <Button
-                  size="lg"
-                  bg="#B6ED43"
-                  color="#0A0807"
-                  _hover={{ 
-                    bg: '#A0D936',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 20px rgba(182, 237, 67, 0.3)'
-                  }}
-                  _active={{ bg: '#8BC530' }}
-                  borderRadius="xl"
-                  px={6}
-                  py={4}
-                  fontSize="md"
-                  fontWeight="semibold"
-                  transition="all 0.2s ease"
-                  minW="60px"
-                >
-                  <RiArrowRightLine size={20} />
-                </Button>
-              </HStack>
+                Add Connection
+              </Button>
             </VStack>
 
           </VStack>
         </Container>
       </Box>
     </Box>
+    <AddConversationModal
+      isOpen={isAddModalOpen}
+      onClose={handleModalClose}
+      initialFile={selectedFile}
+      onFinish={handleModalFinish}
+    />
+    <JotformSignInModal
+      isOpen={isJotformModalOpen}
+      onClose={() => setIsJotformModalOpen(false)}
+    />
+    </>
   );
 };
 

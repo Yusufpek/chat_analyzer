@@ -11,10 +11,14 @@ import {
   Progress,
   Badge
 } from '@chakra-ui/react';
+import { useStore } from '@store/index';
+import { CONNECTION_TYPE_LABELS } from '@constants/connectionTypes';
 
 const AnalyzeDashboard = () => {
   const { convID } = useParams();
-
+  const agents = useStore((s: any) => s.agents);
+  const selectedConnectionType = useStore((s: any) => s.selectedConnectionType);
+  const { agentId } = useParams();
   // Mock data for charts
   const sentimentData = [
     { month: "January", positive: 65, negative: 20, neutral: 15 },
@@ -52,7 +56,7 @@ const AnalyzeDashboard = () => {
     <Box 
       p={6} 
       className="ca-bg-light-pink" 
-      minH="60vh"
+      minH="100%"
     >
       <VStack gap={6} align="stretch">
         {/* Header */}
@@ -60,9 +64,24 @@ const AnalyzeDashboard = () => {
           <Text className="ca-color-primary" fontSize="3xl" fontWeight="bold" mb={2}>
             Analyze Dashboard
           </Text>
-          <Text className="ca-color-quaternary" fontSize="md">
-            Conversation ID: {convID}
-          </Text>
+                      <HStack gap={2}>
+              <Text className="ca-color-quaternary" fontSize="sm">
+                Agent:
+              </Text>
+              <Badge colorScheme="purple" variant="subtle">
+                {agents?.find((a: any) => a.id === agentId)?.name || 'Unknown'}
+              </Badge>
+              <Text className="ca-color-quaternary" fontSize="sm">
+                Type:
+              </Text>
+              <Badge colorScheme="teal" variant="subtle">
+                {(() => {
+                  const agent = agents?.find((a: any) => a.id === agentId);
+                  const typeKey = (agent?.connection_type || selectedConnectionType) as keyof typeof CONNECTION_TYPE_LABELS;
+                  return CONNECTION_TYPE_LABELS[typeKey] || 'Unknown';
+                })()}
+              </Badge>
+            </HStack>
         </Box>
 
         {/* Stats Cards */}

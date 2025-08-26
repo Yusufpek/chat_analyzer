@@ -11,12 +11,13 @@ export const Footer = () => {
             backgroundColor: '#f8f9fa',
             textAlign: 'center',
             borderTop: '1px solid #dee2e6',
-            marginTop: 'auto'
+            marginTop: 'auto',
+            width: '100%'
         }}>
           {/* Bottom Section - Black Footer */}
-          <Box bg={footerBg} py={12}>
+          <Box bg={footerBg} py={8}>
                 <Container maxW="container.lg">
-                  <VStack gap={4} textAlign="center">
+                  <VStack gap={3} textAlign="center">
                     <Text
                       fontSize="lg"
                       color="white"
@@ -30,9 +31,11 @@ export const Footer = () => {
                   </VStack>
                 </Container>
               </Box>
-            <p style={{ margin: 0, color: '#6c757d' }}>
-                &copy; {new Date().getFullYear()} Chat Analyzer. All rights reserved.
-            </p>
+            <Box py={2} bg="white">
+                <Text fontSize="sm" color="#6c757d" m={0}>
+                    &copy; {new Date().getFullYear()} Chat Analyzer. All rights reserved.
+                </Text>
+            </Box>
         </footer>
     );
 };

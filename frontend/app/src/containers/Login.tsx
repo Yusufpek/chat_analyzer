@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
-import { Field, Input, Checkbox, Button, Stack, Text, Box, Heading } from "@chakra-ui/react";
-import { Link } from 'react-router-dom';
+import { Field, Input, Button, Stack, Text, Box, Heading } from "@chakra-ui/react";
+import { Link, useNavigate } from 'react-router-dom'; 
+import { routePaths } from '../constants/routePaths';
+import { useStore } from '@store/index';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const navigateTo = useNavigate();
+  const login = useStore((s: any) => s.login);
+  const isLoadingLogin = useStore((s: any) => s.isLoadingLogin);
+  const loginError = useStore((s: any) => s.loginError);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', { email, password, rememberMe });
+
+    console.log('Login attempt started...');
+    const ok = await login(username, password);
+    console.log('Login result:', ok);
+    
+    if (ok) {
+      console.log('Login successful, redirecting to home...');
+      navigateTo(routePaths.landing());
+    } else {
+      console.log('Login failed, staying on login page');
+    }
   };
 
   return (
-    
       <Box 
         maxW="20rem"
         mx="auto"
@@ -48,7 +61,7 @@ const Login = () => {
               lineHeight="1.5rem"
               color="#615568"
             >
-              Please enter your email and password to login
+              Please enter your username and password to login
             </Text>
           </Box>
 
@@ -64,14 +77,14 @@ const Login = () => {
                   color: "#0A0807",
                   marginBottom: "0.5rem"
                 }}>
-                  Email
+                  Username
                 </Field.Label>
                 <Input 
-                  type="email"
+                  type="text"
                   color="#000000"
-                  placeholder="example@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   height="3.25rem"
                   border="1px solid #E5E5E5"
                   borderRadius="0.875rem"
@@ -121,48 +134,6 @@ const Login = () => {
                 />
               </Field.Root>
 
-              {/* Remember Me & Forgot Password */}
-              <Stack direction="row" justify="space-between" align="center">
-                <Checkbox.Root
-                  onCheckedChange={() => setRememberMe(!rememberMe)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <Checkbox.HiddenInput />
-                  <Checkbox.Control 
-                    border="1px solid #E5E5E5"
-                    borderRadius="0.375rem"
-                    _checked={{ 
-                      bg: '#D200D3',
-                      borderColor: '#D200D3'
-                    }}
-                  />
-                  <Checkbox.Label style={{
-                    fontSize: "0.875rem",
-                    lineHeight: "1.25rem",
-                    color: "#374151"
-                  }}>
-                    Remember me
-                  </Checkbox.Label>
-                </Checkbox.Root>
-                
-                <Link to="/forgot-password">
-                  <Text 
-                    fontSize="0.875rem"
-                    lineHeight="1.25rem"
-                    color="#D200D3"
-                    cursor="pointer"
-                    _hover={{ color: '#B91C5B' }}
-                    fontWeight="500"
-                  >
-                    Forgot password?
-                  </Text>
-                </Link>
-              </Stack>
-
               {/* Login Button */}
               <Button
                 type="submit"
@@ -175,6 +146,8 @@ const Login = () => {
                 fontWeight="600"
                 borderRadius="0.875rem"
                 height="3.25rem"
+                loading={isLoadingLogin}
+                disabled={isLoadingLogin}
                 _before={{
                   content: '""',
                   position: 'absolute',
@@ -204,6 +177,9 @@ const Login = () => {
               >
                 Login
               </Button>
+              {loginError && (
+                <Text color="#DC2626" fontSize="0.875rem">{loginError}</Text>
+              )}
             </Stack>
           </form>
 

@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { Field, Input, Checkbox, Button, Stack, Text, Box, Heading } from "@chakra-ui/react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useStore } from '@store/index';
+import { routePaths } from '../constants/routePaths';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
     agreeToTerms: false,
     agreeToMarketing: false
   });
+  const navigateTo = useNavigate();
+  const register = useStore((s: any) => s.register);
+  const isLoadingRegister = useStore((s: any) => s.isLoadingRegister);
+  const registerError = useStore((s: any) => s.registerError);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -20,10 +27,25 @@ const Signup = () => {
     }));
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Signup attempt:', formData);
+
+    const payload = {
+      username: formData.username,
+      password: formData.password,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      email: formData.email,
+    };
+
+    try {
+      const ok = await register(payload);
+      if (ok) {
+        navigateTo(routePaths.login());
+      }
+    } catch (error) {
+      console.error('Signup failed:', error);
+    }
   };
 
   return (
@@ -150,6 +172,39 @@ const Signup = () => {
                 placeholder="example@email.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
+                height="3.25rem"
+                border="1px solid #E5E5E5"
+                borderRadius="0.875rem"
+                fontSize="0.875rem"
+                lineHeight="1.25rem"
+                _placeholder={{ color: '#9CA3AF' }}
+                _focus={{ 
+                  borderColor: '#D200D3',
+                  boxShadow: '0 0 0 3px rgba(210, 0, 211, 0.1)'
+                }}
+                _hover={{
+                  borderColor: '#D1D5DB'
+                }}
+              />
+            </Field.Root>
+
+            {/* username Field */}
+            <Field.Root>
+              <Field.Label style={{
+                fontSize: "0.875rem",
+                lineHeight: "1.25rem",
+                fontWeight: "600",
+                color: "#0A0807",
+                marginBottom: "0.5rem"
+              }}>
+                Username
+              </Field.Label>
+              <Input
+                color = "black" 
+                type="text"
+                placeholder="Enter your username"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
                 height="3.25rem"
                 border="1px solid #E5E5E5"
                 borderRadius="0.875rem"
@@ -315,6 +370,7 @@ const Signup = () => {
               fontWeight="600"
               borderRadius="0.875rem"
               height="3.25rem"
+              disabled={isLoadingRegister}
               _before={{
                 content: '""',
                 position: 'absolute',
@@ -342,10 +398,16 @@ const Signup = () => {
               }}
               transition="all 0.2s ease"
             >
-              Create Account
+              {isLoadingRegister ? 'Creating...' : 'Create Account'}
             </Button>
           </Stack>
         </form>
+
+        {registerError && (
+          <Text color="red.500" fontSize="0.875rem" textAlign="center">
+            {registerError}
+          </Text>
+        )}
 
         {/* Divider */}
         <Stack direction="row" align="center">
