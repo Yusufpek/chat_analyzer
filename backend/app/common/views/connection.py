@@ -169,7 +169,7 @@ class FileSourceView(BaseAPIView):
             except Exception as e:
                 return ResponseStatus.BAD_REQUEST, {"errors": str(e)}
 
-            return ResponseStatus.CREATED, {"content": AgentSerializer(agent).data}
+            return ResponseStatus.CREATED, AgentSerializer(agent).data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 
