@@ -71,7 +71,7 @@ class OpenAIService(AIService):
 
         response = self.send_request(prompt)
         parsed_response = json.loads(self.parse_response(response))
-        print("parsed_response:", parsed_response)
+
         if "sentiment" in parsed_response and "details" in parsed_response:
             return parsed_response["sentiment"], parsed_response["details"]
 

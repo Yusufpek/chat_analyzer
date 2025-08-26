@@ -66,7 +66,6 @@ class AgentSerializer(serializers.ModelSerializer):
         }
 
     def validate_id(self, value):
-        print(f"Validating agent ID: {value}")
         if not value:
             raise serializers.ValidationError("Agent ID cannot be empty.")
         if not isinstance(value, str):
