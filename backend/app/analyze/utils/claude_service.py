@@ -61,14 +61,13 @@ class ClaudeService(AIService):
             f"{conversation_messages}\n\n"
             "Provide the sentiment analysis in the following format:\n"
             "{\n"
-            '  "sentiment": "<positive/negative>",\n'
+            '  "sentiment": "<SUPER_POSITIVE/POSITIVE/NEUTRAL/NEGATIVE/SUPER_NEGATIVE>",\n'
             '  "details": "<brief explanation of the sentiment>"\n'
             "}"
         )
 
         response = self.send_request(prompt)
         parsed_response = json.loads(self.parse_response(response))
-        print("parsed_response:", parsed_response)
         if "sentiment" in parsed_response and "details" in parsed_response:
             return parsed_response["sentiment"], parsed_response["details"]
 

@@ -49,9 +49,11 @@ class Command(CustomBaseCommand):
         self.logger.info(f"Found {conversations.count()} conversations for analysis.")
 
         sentimental_counts = {
+            "super_positive": 0,
             "positive": 0,
-            "negative": 0,
             "neutral": 0,
+            "negative": 0,
+            "super_negative": 0,
         }
 
         for conversation in conversations:

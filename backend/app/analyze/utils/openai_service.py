@@ -64,7 +64,7 @@ class OpenAIService(AIService):
             f"{conversation_messages}\n\n"
             "Provide the sentiment analysis in the following format:\n"
             "{\n"
-            '  "sentiment": "<positive/negative>",\n'
+            '  "sentiment": "<SUPER_POSITIVE/POSITIVE/NEUTRAL/NEGATIVE/SUPER_NEGATIVE>",\n'
             '  "details": "<brief explanation of the sentiment>"\n'
             "}"
         )
