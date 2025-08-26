@@ -6,14 +6,21 @@ import {
   Button,
   Container,
   VStack,
+  Avatar,
+  Menu,
+  Portal,
 } from '@chakra-ui/react';
 
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { useStore } from '@store/index';
+import { CONNECTION_TYPES, CONNECTION_TYPE_LABELS } from '@constants/connectionTypes';
 
 export const Header = () => {
-  // Mock variable to control user login state
-  const isUserLoggedIn = false;
+  const isUserLoggedIn = useStore((s: any) => s.authStatus === 'authenticated');
+  const user = useStore((s: any) => s.user);
+  const setSelectedConnectionType = useStore((s: any) => s.setSelectedConnectionType);
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   
@@ -80,6 +87,130 @@ export const Header = () => {
         >
           {children}
         </RouterLink>
+        {active && (
+          <Box
+            position="absolute"
+            bottom="0"
+            left="50%"
+            transform="translateX(-50%)"
+            width="80%"
+            height="2px"
+            backgroundColor={underlineColor}
+            borderRadius="1px"
+            transition="background-color 0.3s"
+          />
+        )}
+      </Box>
+    );
+  };
+
+  // Analyze dropdown component
+  const AnalyzeDropdown = () => {
+    const [isHovered, setIsHovered] = useState(false);
+    const active = isActive('/analyze');
+    const linkColor = isHovered ? hoverColor : textColor;
+    const underlineColor = isHovered ? hoverColor : textColor;
+
+    return (
+      <Box position="relative" display="inline-block">
+        <Menu.Root>
+          <Menu.Trigger asChild>
+            <Box
+              as="button"
+              style={{
+                ...navLinkStyle,
+                color: linkColor,
+                position: 'relative',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              Analyze
+            </Box>
+          </Menu.Trigger>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content
+                bg="white"
+                border="1px solid #D3D3D3"
+                borderRadius="0.5rem"
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.15)"
+                minW="180px"
+                py={1}
+              >
+                <Menu.Item
+                  value={CONNECTION_TYPES.JOTFORM}
+                  style={{
+                    color: textColor,
+                    fontSize: '1rem',
+                    fontWeight: 450,
+                    padding: '0.75rem 1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                  }}
+                  _hover={{
+                    bg: '#FFF6FF',
+                    color: hoverColor,
+                  }}
+                  _focus={{
+                    bg: '#FFF6FF',
+                    color: hoverColor,
+                  }}
+                  onClick={() => { setSelectedConnectionType(CONNECTION_TYPES.JOTFORM); navigate('/analyze'); setIsMenuOpen(false); }}
+                >
+                  {CONNECTION_TYPE_LABELS[CONNECTION_TYPES.JOTFORM]}
+                </Menu.Item>
+                <Menu.Item
+                  value={CONNECTION_TYPES.CHATGPT}
+                  style={{
+                    color: textColor,
+                    fontSize: '1rem',
+                    fontWeight: 450,
+                    padding: '0.75rem 1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                  }}
+                  _hover={{
+                    bg: '#FFF6FF',
+                    color: hoverColor,
+                  }}
+                  _focus={{
+                    bg: '#FFF6FF',
+                    color: hoverColor,
+                  }}
+                  onClick={() => { setSelectedConnectionType(CONNECTION_TYPES.CHATGPT); navigate('/analyze'); setIsMenuOpen(false); }}
+                >
+                  {CONNECTION_TYPE_LABELS[CONNECTION_TYPES.CHATGPT]}
+                </Menu.Item>
+                <Menu.Item
+                  value={CONNECTION_TYPES.FILE}
+                  style={{
+                    color: textColor,
+                    fontSize: '1rem',
+                    fontWeight: 450,
+                    padding: '0.75rem 1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                  }}
+                  _hover={{
+                    bg: '#FFF6FF',
+                    color: hoverColor,
+                  }}
+                  _focus={{
+                    bg: '#FFF6FF',
+                    color: hoverColor,
+                  }}
+                  onClick={() => { setSelectedConnectionType(CONNECTION_TYPES.FILE); navigate('/analyze'); setIsMenuOpen(false); }}
+                >
+                  {CONNECTION_TYPE_LABELS[CONNECTION_TYPES.FILE]}
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
         {active && (
           <Box
             position="absolute"
@@ -197,53 +328,52 @@ export const Header = () => {
               <NavLink to="/">Home</NavLink>
               <NavLink to="/about">About Us</NavLink>
               <NavLink to="https://form.jotform.com/252263897399981" isExternal>Contact Us</NavLink>
-              <NavLink to="/analyze">Analyze</NavLink>
+              <AnalyzeDropdown />
             </Flex>
 
             {/* User Avatar or Login Button */}
             {isUserLoggedIn ? (
-              <Box
-                onClick={() => window.location.href = '/profile'}
-                w="40px"
-                h="40px"
-                borderRadius="50%"
-                bg={hoverColor}
-                color="white"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                fontWeight="bold"
-                cursor="pointer"
-                _hover={{
-                  transform: 'scale(1.1)',
-                  transition: 'transform 0.2s ease',
-                }}
-              >
-                U
-              </Box>
+              <RouterLink to="/profile" style={{ textDecoration: 'none' }}>
+                <Box
+                  cursor="pointer"
+                  borderRadius="full"
+                  _hover={{
+                    transform: 'scale(1.05)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                >
+                  <Avatar.Root size="md">
+                    {typeof user?.profile_image === 'string' && user.profile_image ? (
+                      <Avatar.Image src={user.profile_image} />
+                    ) : null}
+                    <Avatar.Fallback name={(((`${user?.first_name || ''} ${user?.last_name || ''}`).trim()) || user?.username || 'User')} />
+                  </Avatar.Root>
+                </Box>
+              </RouterLink>
             ) : (
-              <Button
-                onClick={() => window.location.href = '/login'}
-                bg={'black'}
-                color={'white'}
-                fontWeight={600}
-                fontSize="1.125rem"
-                px={6}
-                py={3}
-                borderRadius="0.625rem"
-                _hover={{
-                  bg: 'grey',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(182, 237, 67, 0.3)',
-                }}
-                _active={{
-                  transform: 'translateY(0)',
-                }}
-                transition="all 0.3s ease"
-                display={{ base: 'none', md: 'flex' }}
-              >
-                Login
-              </Button>
+              <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+                <Button
+                  bg={'black'}
+                  color={'white'}
+                  fontWeight={600}
+                  fontSize="1.125rem"
+                  px={6}
+                  py={3}
+                  borderRadius="0.625rem"
+                  _hover={{
+                    bg: 'grey',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(182, 237, 67, 0.3)',
+                  }}
+                  _active={{
+                    transform: 'translateY(0)',
+                  }}
+                  transition="all 0.3s ease"
+                  display={{ base: 'none', md: 'flex' }}
+                >
+                  Login
+                </Button>
+              </RouterLink>
             )}
 
             {/* Mobile Menu Button */}
@@ -295,30 +425,28 @@ export const Header = () => {
             {/* Mobile Login Button */}
             {!isUserLoggedIn && (
               <Box p={4} borderTop="1px solid #D3D3D3">
-                <Button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    window.location.href = '/login';
-                  }}
-                  bg={'black'}
-                  color={'white'}
-                  fontWeight={600}
-                  fontSize="1.125rem"
-                  w="full"
-                  py={3}
-                  borderRadius="0.625rem"
-                  _hover={{
-                    bg: 'grey',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(182, 237, 67, 0.3)',
-                  }}
-                  _active={{
-                    transform: 'translateY(0)',
-                  }}
-                  transition="all 0.3s ease"
-                >
-                  Login
-                </Button>
+                <RouterLink to="/login" onClick={() => setIsMenuOpen(false)} style={{ textDecoration: 'none' }}>
+                  <Button
+                    bg={'black'}
+                    color={'white'}
+                    fontWeight={600}
+                    fontSize="1.125rem"
+                    w="full"
+                    py={3}
+                    borderRadius="0.625rem"
+                    _hover={{
+                      bg: 'grey',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(182, 237, 67, 0.3)',
+                    }}
+                    _active={{
+                      transform: 'translateY(0)',
+                    }}
+                    transition="all 0.3s ease"
+                  >
+                    Login
+                  </Button>
+                </RouterLink>
               </Box>
             )}
           </VStack>

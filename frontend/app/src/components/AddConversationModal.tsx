@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, 
   Button, 
@@ -9,10 +9,12 @@ import {
   Input,
   Spinner,
   Avatar,
-  Icon,
-  useDisclosure
 } from "@chakra-ui/react";
 import { LuUpload } from "react-icons/lu";
+import { request } from "@api/requestLayer";
+import { useStore } from "@store/index";
+import { useNavigate } from "react-router-dom";
+import { routePaths } from "@constants/routePaths";
 
 // Type definitions
 interface AvatarTemplate {
@@ -45,18 +47,45 @@ const avatarTemplates: AvatarTemplate[] = [
   { id: 20, name: "Bot 20", image: "/avatars/bottts-1755467181840.png" },
 ];
 
+const getRandomAvatarTemplate = (): AvatarTemplate => {
+  const index = Math.floor(Math.random() * avatarTemplates.length);
+  return avatarTemplates[index];
+};
+
 interface AddConversationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialFile?: File | null;
+  onFinish?: () => void;
 }
 
-const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onClose }) => {
-  const [currentStep, setCurrentStep] = useState(0);
+const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onClose, initialFile = null, onFinish }) => {
+  const routerNavigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(initialFile ? 1 : 0);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(initialFile ?? null);
   const [conversationName, setConversationName] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState<AvatarTemplate | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<AvatarTemplate | null>(getRandomAvatarTemplate());
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  // Get fetchAgents from store
+  const fetchAgents = useStore((s: any) => s.fetchAgents);
+
+  // When opened with a preselected file, skip upload step
+  useEffect(() => {
+    if (isOpen) {
+      if (initialFile) {
+        setUploadedFile(initialFile);
+        setCurrentStep(1);
+      } else {
+        setUploadedFile(null);
+        setCurrentStep(0);
+      }
+      // Ensure a random avatar is preselected when the modal opens
+      setSelectedAvatar(getRandomAvatarTemplate());
+    }
+  }, [isOpen, initialFile]);
 
   const steps = [
     { title: "Upload Document", description: "Upload your conversation file" },
@@ -75,35 +104,115 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
     setIsDragOver(false);
   };
 
+  const handleFileUpload = (files: File[]) => {
+    if (files.length > 0) {
+      const file = files[0];
+      const allowedTypes = ['.csv', '.json'];
+      const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      
+      if (!allowedTypes.includes(fileExtension)) {
+        setUploadError('Please select a .csv or .json file');
+        return;
+      }
+      
+      setUploadedFile(file);
+      setCurrentStep(1);
+      setUploadError(null);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      setUploadedFile(files[0]);
+      const file = files[0];
+      const allowedTypes = ['.csv', '.json'];
+      const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      
+      if (!allowedTypes.includes(fileExtension)) {
+        setUploadError('Please select a .csv or .json file');
+        return;
+      }
+      
+      setUploadedFile(file);
       setCurrentStep(1);
+      setUploadError(null);
     }
   };
 
-  const handleFileUpload = (files: File[]) => {
-    if (files.length > 0) {
-      setUploadedFile(files[0]);
-      setCurrentStep(1);
-    }
-  };
-
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
-      if (currentStep === 1 && conversationName.trim()) {
+      if (currentStep === 0 && uploadedFile) {
+        setCurrentStep(1);
+      } else if (currentStep === 1 && conversationName.trim()) {
         setCurrentStep(2);
       } else if (currentStep === 2 && selectedAvatar) {
+        if (!uploadedFile) {
+          setUploadError('Please select a file first');
+          return;
+        }
+        
         setCurrentStep(3);
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-          setIsLoading(false);
+        setUploadError(null);
+        
+        try {
+          // Create FormData for file upload
+          const formData = new FormData();
+          formData.append('agent_name', conversationName);
+          formData.append('agent_avatar_url', selectedAvatar.image);
+          formData.append('file', uploadedFile);
+
+          console.log('Uploading conversation:', {
+            agent_name: conversationName,
+            agent_avatar_url: selectedAvatar.image,
+            file_name: uploadedFile.name,
+            file_size: uploadedFile.size
+          });
+
+          // Make API call to upload conversation
+          const response = await request('/api/connection/file-source/', {
+            method: 'POST',
+            body: formData,
+          });
+
+          console.log('Upload successful:', response);
+          const createdAgentId = String(response?.content?.id || response?.id || '');
+          if (!createdAgentId) {
+            throw new Error('Agent ID missing in response');
+          }
+          
+          // Refresh agents list after successful upload
+          try {
+            await fetchAgents();
+          } catch (error) {
+            console.error('Failed to refresh agents:', error);
+          }
+          
+          // Navigate to analyze/{agentId}
+          try {
+            routerNavigate(routePaths.analyzeMain(createdAgentId));
+          } catch (navError) {
+            console.error('Navigation failed:', navError);
+          }
+          
+          // Call onFinish callback if provided
+          if (onFinish) {
+            onFinish();
+          }
+          
+          // Close modal after successful upload
           handleClose();
-        }, 3000);
+          
+        } catch (error: any) {
+          console.error('Upload failed:', error);
+          setUploadError(error.message || 'Failed to upload conversation');
+          // Go back to previous step on error
+          setCurrentStep(2);
+        } finally {
+          setIsLoading(false);
+        }
       }
     }
   };
@@ -121,6 +230,7 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
     setConversationName('');
     setSelectedAvatar(null);
     setIsLoading(false);
+    setUploadError(null);
   };
 
   const renderStepContent = () => {
@@ -148,11 +258,12 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              cursor="pointer"
+              cursor={currentStep === 0 ? "pointer" : "default"}
               onClick={() => {
+                if (currentStep !== 0) return;
                 const input = document.createElement('input');
                 input.type = 'file';
-                input.accept = '.txt,.csv,.json';
+                input.accept = '.csv,.json';
                 input.onchange = (e) => {
                   const files = (e.target as HTMLInputElement).files;
                   if (files && files.length > 0) {
@@ -163,14 +274,14 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
               }}
             >
               <VStack gap={4}>
-                <Icon size="xl" color="#615568">
+                <Box color="#615568" fontSize="4xl">
                   <LuUpload />
-                </Icon>
+                </Box>
                 <Box fontSize="xl" fontWeight="semibold" color="#0A0807" textAlign="center">
                   Drag and drop your conversation files here
                 </Box>
                 <Box color="#615568" fontSize="md" textAlign="center">
-                  .txt, .csv, .json up to 10MB
+                  .csv, .json up to 10MB
                 </Box>
               </VStack>
             </Box>
@@ -180,10 +291,10 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
         return (
           <VStack gap={6} maxW="md" mx="auto">
             <Text fontSize="lg" fontWeight="medium" color="#0A0807">
-              What would you like to call this conversation?
+              What would you name the agent
             </Text>
             <Input 
-              placeholder="Enter conversation name..." 
+              placeholder="Enter agent name..." 
               value={conversationName}
               onChange={(e) => setConversationName(e.target.value)}
               color="black"
@@ -198,7 +309,7 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
         return (
           <VStack gap={6} maxW="2xl" mx="auto">
             <Text fontSize="lg" fontWeight="medium" color="#0A0807">
-              Choose an avatar for your conversation
+              Choose an avatar for your agent
             </Text>
             
             {/* Avatar Preview */}
@@ -289,6 +400,11 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
             <Text fontSize="md" color="#615568" textAlign="center">
               This may take a few moments. Please don't close this window.
             </Text>
+            {uploadError && (
+              <Text fontSize="md" color="red.500" textAlign="center">
+                {uploadError}
+              </Text>
+            )}
           </VStack>
         );
       default:
@@ -322,7 +438,7 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
       >
         <Flex justifyContent="space-between" alignItems="center" mb={6}>
           <Text fontSize="2xl" fontWeight="bold" color="#0A0807">
-            Add New Conversation
+            Add New Agent Conversation
           </Text>
           <Button
             variant="ghost"
@@ -384,7 +500,7 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
               bg="#D200D3"
               color="white"
               _hover={{ bg: "#B6ED43", color: "#0A0807" }}
-              disabled={isLoading}
+              disabled={isLoading || (currentStep === 0 && !uploadedFile) || (currentStep === 1 && !conversationName.trim()) || (currentStep === 2 && !selectedAvatar)}
             >
               {isLoading ? <Spinner size="sm" /> : "Next"}
             </Button>
@@ -401,6 +517,13 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
             </Button>
           )}
         </HStack>
+        
+        {/* Error message display */}
+        {uploadError && currentStep !== 3 && (
+          <Text fontSize="sm" color="red.500" textAlign="center" mt={4}>
+            {uploadError}
+          </Text>
+        )}
       </Box>
     </Box>
   );

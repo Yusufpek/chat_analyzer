@@ -56,5 +56,8 @@ export const routePaths = {
   analyzeConversationDetail: (agentId: string = '', convId: string = '') => {
     return `/analyze/${agentId}/conversations/${convId}`;
   },
+  analyzeSettings: (agentId: string = "") => {
+    return `/analyze/${agentId}/settings`;
+  },
   navigate
 };

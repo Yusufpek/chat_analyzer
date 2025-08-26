@@ -68,6 +68,11 @@ const getRoutes = () => [
     path: routePaths.analyzeSentiment(":agentId"),
     component: Analyze,
     exact: true,
+  },
+  {
+    path: routePaths.analyzeSettings(":agentId"),
+    component: Analyze,
+    exact: true,
   }
 ];
 
