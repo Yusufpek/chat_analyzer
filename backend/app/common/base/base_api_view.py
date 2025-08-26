@@ -83,13 +83,12 @@ class BaseListAPIView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         start = datetime.now()
         response = self.list(request, *args, **kwargs)
-        print(response)
         duration = (datetime.now() - start).total_seconds() * 1000
-        print(f"Response time: {duration} ms")
+
         status = get_status_to_response(
             code_to_status(response.status_code),
             response.data,
             duration,
         )
-        print(status)
+
         return status

@@ -67,7 +67,6 @@ class Command(CustomBaseCommand):
                     ]
                 )
                 sentiment, details = service.sentimental_analysis(text)
-                print(f"Sentiment: {sentiment}, Details: {details}")
                 if sentiment and details:
                     self.logger.info("AI Service is reachable and working correctly.")
                     self.logger.info(f"Sentiment: {sentiment}")

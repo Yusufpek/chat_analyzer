@@ -22,5 +22,4 @@ def get_sentimental_analysis_task():
     log.complete_task(
         "Analyzed conversations {}".format(now.strftime("%m/%d/%Y, %H:%M"))
     )
-    print("log saved :)")
     return True
