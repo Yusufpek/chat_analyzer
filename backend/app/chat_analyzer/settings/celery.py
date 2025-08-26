@@ -16,6 +16,6 @@ CELERY_RESULT_BACKEND = "rpc://"
 CELERY_BEAT_SCHEDULE = {
     "get_sentimental_analysis": {
         "task": "analyze.tasks.ai_tasks.get_sentimental_analysis_task",
-        "schedule": crontab(minute="*/15"),
+        "schedule": crontab(minute="*/5"),
     },
 }
