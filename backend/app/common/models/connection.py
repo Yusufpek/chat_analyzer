@@ -56,6 +56,11 @@ class Agent(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     avatar_url = models.CharField(max_length=127, null=True, blank=True)
     jotform_render_url = models.CharField(max_length=255, null=True, blank=True)
+    label_choices = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of valid labels for conversations associated with this agent.",
+    )
 
     def __str__(self):
         return f"{self.connection.connection_type} - {self.id}"
