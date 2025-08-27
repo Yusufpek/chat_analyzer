@@ -48,6 +48,11 @@ class Conversation(models.Model):
         null=True,
         blank=True,
     )
+    label = models.CharField(
+        max_length=127,
+        null=True,
+        blank=True,
+    )
     # FK
     user = models.ForeignKey(
         User,

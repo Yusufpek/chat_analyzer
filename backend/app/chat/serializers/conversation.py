@@ -30,6 +30,7 @@ class ConversationSerializer(serializers.Serializer):
             "agent_id": instance.agent_id,
             "analysis_result": instance.analysis_result,
             "analysis_details": instance.analysis_details,
+            "label": instance.label,
             "last_message": instance.last_message
             if hasattr(instance, "last_message")
             else ChatMessageSerializer(last_message).data,
