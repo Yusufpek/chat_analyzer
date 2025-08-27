@@ -42,9 +42,7 @@ class Command(CustomBaseCommand):
             messages__isnull=False,
         ).distinct()
         if not conversations.exists():
-            self.stdout.write(
-                self.style.WARNING("No conversations found for analysis.")
-            )
+            self.logger.info("No conversations found for analysis.")
             return
         self.logger.info(f"Found {conversations.count()} conversations for analysis.")
 
@@ -57,7 +55,7 @@ class Command(CustomBaseCommand):
         }
 
         for conversation in conversations:
-            self.stdout.write(f"Analyzing conversation ID: {conversation.id}")
+            self.logger.info(f"Analyzing conversation ID: {conversation.id}")
             try:
                 messages = ChatMessage.objects.filter(
                     conversation_id=conversation.id,

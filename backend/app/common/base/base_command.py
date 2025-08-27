@@ -73,7 +73,7 @@ class CustomBaseCommand(BaseCommand):
         )
 
         # Log the start of the command
-        self.logger.info("Command started.")
+        self.logger.info(f"Command {self.command_name} started.")
 
         try:
             # Call the process method (to be implemented in subclasses)
