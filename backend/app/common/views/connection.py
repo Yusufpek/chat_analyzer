@@ -24,6 +24,10 @@ from chat.tasks.jotform_tasks import (
 )
 from common.utils.filter_mapper import filter_mapper
 from chat.models.conversation import Conversation, ChatMessage
+from analyze.tasks.ai_tasks import (
+    label_conversations_task,
+    setup_label_conversations_periodic_task,
+)
 
 
 class ConnectionView(BaseAPIView):
@@ -214,6 +218,11 @@ class AgentView(BaseAPIView):
             serializer.save()
             for agent in serializer.validated_data:
                 fetch_agent_conversations.delay_on_commit(agent_id=agent["id"])
+                if agent["label_choices"]:
+                    setup_label_conversations_periodic_task.delay_on_commit(
+                        agent_id=agent["id"],
+                        sync_interval=connection.sync_interval,
+                    )
             return ResponseStatus.SUCCESS, serializer.data
         return ResponseStatus.BAD_REQUEST, serializer.errors
 
@@ -253,6 +262,17 @@ class AgentView(BaseAPIView):
             }
         serializer = AgentSerializer(agent, data=data, partial=True)
         if serializer.is_valid():
+            if agent.label_choices != serializer.validated_data.get("label_choices"):
+                label_conversations_task.delay_on_commit(
+                    agent_id=agent.id,
+                    label_all=True,
+                )
+
+            if "label_choices" in serializer.validated_data:
+                setup_label_conversations_periodic_task(
+                    agent_id=agent.id,
+                    sync_interval=agent.connection.sync_interval,
+                )
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
