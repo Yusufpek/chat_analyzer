@@ -74,3 +74,35 @@ class ClaudeService(AIService):
         raise ValueError(
             "Unexpected response format from OpenAI API for sentiment analysis."
         )
+
+    def label_analysis(self, conversation_messages: str, labels: str):
+        """
+        Performs label analysis on the provided conversation messages.
+        :param conversation_messages: The conversation messages to analyze.
+        :param labels: A list of possible labels to classify the conversation.
+        :return: A tuple containing the assigned label and details.
+        """
+        if not conversation_messages:
+            raise ValueError("No conversation messages provided for label analysis.")
+
+        prompt = (
+            "Here is a conversation between an AI assistant and a user. "
+            "Analyze the conversation and assign the most appropriate label from the following options:\n"
+            f"{labels}\n\n"
+            f"{conversation_messages}\n\n"
+            "Provide the label analysis in the following format:\n"
+            "{\n"
+            '  "label": "<assigned_label>",\n'
+            '  "details": "<brief explanation of the label>"\n'
+            "}"
+        )
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(self.parse_response(response))
+
+        if "label" in parsed_response and "details" in parsed_response:
+            return parsed_response["label"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for label analysis."
+        )
