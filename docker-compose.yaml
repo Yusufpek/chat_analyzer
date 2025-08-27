@@ -91,6 +91,7 @@ services:
       - ./backend/app/media:/app/media
     depends_on:
       - rabbitmq
+      - db
     command:  celery -A chat_analyzer beat --loglevel=debug --scheduler django_celery_beat.schedulers:DatabaseScheduler
     networks:
       - ca_network
