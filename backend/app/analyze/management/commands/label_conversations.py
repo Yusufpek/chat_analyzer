@@ -66,6 +66,8 @@ class Command(CustomBaseCommand):
             )
             return
 
+        self.logger.info(f"Found agent with ID: {agent.id}")
+
         conversations = Conversation.objects.filter(
             agent_id=agent.id,
             messages__isnull=False,
