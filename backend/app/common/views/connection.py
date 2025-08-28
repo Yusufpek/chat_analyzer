@@ -218,7 +218,7 @@ class AgentView(BaseAPIView):
             serializer.save()
             for agent in serializer.validated_data:
                 fetch_agent_conversations.delay_on_commit(agent_id=agent["id"])
-                if agent["label_choices"]:
+                if agent.get("label_choices"):
                     setup_label_conversations_periodic_task.delay_on_commit(
                         agent_id=agent["id"],
                         sync_interval=connection.sync_interval,
@@ -275,7 +275,7 @@ class AgentView(BaseAPIView):
                 )
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
-        return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
+        return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors},
 
 
 class AgentDetailView(BaseAPIView):
