@@ -74,7 +74,7 @@ class Command(CustomBaseCommand):
         )
 
         if not options["all"]:
-            conversations = conversations.filter(analysis_result__isnull=True)
+            conversations = conversations.filter(label__isnull=True)
 
         conversations = conversations.distinct()
 
@@ -109,8 +109,8 @@ class Command(CustomBaseCommand):
                     self.logger.info("AI Service is reachable and working correctly.")
                     self.logger.info(f"Label: {label}")
                     self.logger.info(f"Details: {details}")
-                    conversation.analysis_result = label.upper()
-                    conversation.analysis_details = f"{engine}: {details}"
+                    conversation.label = label.upper()
+                    # conversation.label_details = f"{engine}: {details}"
                     conversation.save()
                     self.logger.info(
                         f"Conversation ID {conversation.id} analyzed successfully."
