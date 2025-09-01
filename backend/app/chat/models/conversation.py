@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -79,6 +80,12 @@ class ChatMessage(models.Model):
         max_length=255,
         choices=SENDER_TYPE_CHOICES,
         default=SENDER_TYPE_USER,
+    )
+    embedded_in_qdrant = models.BooleanField(default=False)
+    embedding_id = models.CharField(
+        max_length=64,
+        default=uuid.uuid4,
+        null=True,
     )
 
     # FK
