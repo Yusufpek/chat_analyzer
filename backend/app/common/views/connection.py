@@ -1,12 +1,13 @@
 import json
 from rest_framework.parsers import JSONParser
 from django.db import transaction
-from django.core.management import call_command
+from django.db.models import Q, Count
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
 from common.serializers.connection import (
     ConnectionSerializer,
     AgentSerializer,
+    AgentDetailSerializer,
     FileSourceSerializer,
 )
 from common.models.connection import Connection, Agent
@@ -17,6 +18,11 @@ from chat.utils.file_conversations import (
 from chat.utils.jotform_conversation import get_agents
 from common.constants.sources import SOURCE_FILE, SOURCE_JOTFORM
 from common.utils.jotform_api import JotFormAPIService
+from chat.tasks.jotform_tasks import (
+    fetch_agent_conversations,
+    fetch_jotform_connection_periodic_task,
+)
+from common.utils.filter_mapper import filter_mapper
 from chat.models.conversation import Conversation, ChatMessage
 
 
@@ -41,14 +47,19 @@ class ConnectionView(BaseAPIView):
                 if not is_valid:
                     return ResponseStatus.BAD_REQUEST, {"errors": "Invalid API key."}
 
-                connection = serializer.save()
+            connection = serializer.save()
 
-                # Serialize the connection and agents
-                connection_serializer = ConnectionSerializer(connection)
+            if connection.connection_type == SOURCE_JOTFORM:
+                fetch_jotform_connection_periodic_task(
+                    connection.id,
+                    connection.sync_interval,
+                )
 
-                return ResponseStatus.CREATED, {
-                    "content": connection_serializer.data,
-                }
+            connection_serializer = ConnectionSerializer(connection)
+
+            return ResponseStatus.CREATED, {
+                "content": connection_serializer.data,
+            }
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
     def delete_request(self, request, *args, **kwargs):
@@ -78,7 +89,6 @@ class ConnectionView(BaseAPIView):
     def put_request(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
         conn_type = kwargs.get("connection_type")
-
         connection = Connection.objects.filter(
             connection_type=conn_type,
             api_key=data.get("api_key"),
@@ -102,6 +112,11 @@ class ConnectionView(BaseAPIView):
                     "errors": "Connection type cannot be changed."
                 }
             serializer.save()
+            if connection.connection_type == SOURCE_JOTFORM:
+                fetch_jotform_connection_periodic_task(
+                    connection.id,
+                    connection.sync_interval,
+                )
             return ResponseStatus.ACCEPTED, serializer.data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
@@ -154,11 +169,11 @@ class FileSourceView(BaseAPIView):
             except Exception as e:
                 return ResponseStatus.BAD_REQUEST, {"errors": str(e)}
 
-            return ResponseStatus.CREATED, {"content": AgentSerializer(agent).data}
+            return ResponseStatus.CREATED, AgentSerializer(agent).data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 
-class AgentAPIView(BaseAPIView):
+class AgentView(BaseAPIView):
     def get_request(self, request, *args, **kwargs):
         """
         Fetches all JotForm agent IDs for the authenticated user.
@@ -184,7 +199,8 @@ class AgentAPIView(BaseAPIView):
         Creates a new JotForm agent ID for the authenticated user.
         """
         connection = Connection.objects.filter(
-            user=request.user, connection_type="jotform"
+            user=request.user,
+            connection_type=SOURCE_JOTFORM,
         ).first()
         if not connection:
             return ResponseStatus.BAD_REQUEST, {
@@ -197,10 +213,7 @@ class AgentAPIView(BaseAPIView):
         if serializer.is_valid():
             serializer.save()
             for agent in serializer.validated_data:
-                call_command(
-                    "fetch_jotform_agent_conversations",
-                    agent_id=agent["id"],
-                )
+                fetch_agent_conversations.delay_on_commit(agent_id=agent["id"])
             return ResponseStatus.SUCCESS, serializer.data
         return ResponseStatus.BAD_REQUEST, serializer.errors
 
@@ -245,7 +258,70 @@ class AgentAPIView(BaseAPIView):
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 
-class JotFormAgentAPIView(BaseAPIView):
+class AgentDetailView(BaseAPIView):
+    def get_request(self, request, *args, **kwargs):
+        """
+        Fetches a specific agent by ID for the authenticated user.
+        """
+        agent_id = kwargs.get("agent_id")
+        filter_data = request.GET.get("filter", None)
+        filter_queries = {}
+        if filter_data:
+            try:
+                filter_queries = filter_mapper(json.loads(filter_data))
+            except json.JSONDecodeError:
+                return ResponseStatus.BAD_REQUEST, {
+                    "error": "Invalid filter format. Must be a valid JSON."
+                }
+            except ValueError as ve:
+                return ResponseStatus.BAD_REQUEST, {"error": str(ve)}
+        agent_qs = Agent.objects.filter(id=agent_id, connection__user=request.user)
+        agent = agent_qs.first()
+        if not agent:
+            return ResponseStatus.NOT_FOUND, {"error": "Agent not found."}
+        conversations = Conversation.objects.filter(
+            agent_id=agent.id,
+            **filter_queries,
+        )
+        chat_messages = ChatMessage.objects.filter(
+            conversation__in=conversations,
+            **filter_queries,
+        )
+        sentiment_counts = conversations.aggregate(
+            super_positive_count=Count(
+                "id", filter=Q(analysis_result="SUPER_POSITIVE")
+            ),
+            positive_count=Count("id", filter=Q(analysis_result="POSITIVE")),
+            neutral_count=Count("id", filter=Q(analysis_result="NEUTRAL")),
+            negative_count=Count("id", filter=Q(analysis_result="NEGATIVE")),
+            super_negative_count=Count(
+                "id", filter=Q(analysis_result="SUPER_NEGATIVE")
+            ),
+            total_sentiment_count=Count("id", filter=Q(analysis_result__isnull=False)),
+        )
+        if sentiment_counts["total_sentiment_count"] > 0:
+            sentiment_counts["sentiment_score"] = (
+                (5 * sentiment_counts["super_positive_count"])
+                + (4 * sentiment_counts["positive_count"])
+                + (3 * sentiment_counts["neutral_count"])
+                + (2 * sentiment_counts["negative_count"])
+                + (1 * sentiment_counts["super_negative_count"])
+            ) / sentiment_counts["total_sentiment_count"]
+        else:
+            sentiment_counts["sentiment_score"] = 0.0
+
+        statistics = {
+            "total_conversations": conversations.count(),
+            "total_messages": chat_messages.count(),
+            **sentiment_counts,
+        }
+        serializer = AgentDetailSerializer(
+            agent_qs.first(), context={"statistics": statistics}
+        )
+        return ResponseStatus.SUCCESS, serializer.data
+
+
+class JotFormAgentView(BaseAPIView):
     def get_request(self, request, *args, **kwargs):
         """
         Fetches all JotForm agent IDs for the authenticated user.

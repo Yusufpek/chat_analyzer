@@ -2,9 +2,10 @@ from django.urls import path
 
 from common.views.connection import (
     ConnectionView,
-    AgentAPIView,
+    AgentView,
+    AgentDetailView,
     FileSourceView,
-    JotFormAgentAPIView,
+    JotFormAgentView,
 )
 
 connection_urlpatterns = [
@@ -25,22 +26,27 @@ connection_urlpatterns = [
     ),
     path(
         "agent/",
-        AgentAPIView.as_view(),
+        AgentView.as_view(),
         name="agent_api_url",
     ),
     path(
         "agent/<slug:agent_id>/",
-        AgentAPIView.as_view(),
+        AgentView.as_view(),
+        name="agent_api_url",
+    ),
+    path(
+        "agent/<slug:agent_id>/details",
+        AgentDetailView.as_view(),
         name="agent_api_url",
     ),
     path(
         "connection/<slug:connection_type>/agent/",
-        AgentAPIView.as_view(),
+        AgentView.as_view(),
         name="agent_api_url",
     ),
     path(
         "jotform/agents/",
-        JotFormAgentAPIView.as_view(),
+        JotFormAgentView.as_view(),
         name="jotform_agent_api_url",
     ),
 ]

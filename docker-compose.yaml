@@ -11,6 +11,8 @@ services:
       - "5446:5432"
     volumes:
       - ../pg_data:/var/lib/postgresql/data
+    networks:
+      - ca_network
 
   backend:
     build: ./backend
@@ -25,7 +27,14 @@ services:
       - ./backend/app:/app
     depends_on:
       - db
-    command: bash -c "python manage.py runserver 0.0.0.0:8000"
+    command: >   
+      bash -c "
+        python manage.py makemigrations &&
+        python manage.py migrate --noinput &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    networks:
+      - ca_network
 
   frontend:
     image: node:22-bookworm
@@ -40,3 +49,92 @@ services:
       - ./frontend/app:/app
     command: |
       sh -c "npm install && npm run dev"
+    networks:
+      - ca_network
+
+  rabbitmq:
+    restart: always
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    expose:
+      - "5672"
+    environment:
+      RABBITMQ_DEFAULT_VHOST: "/"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    networks:
+      - ca_network
+
+  celery:
+    build: ./backend
+    container_name: ca_celery
+    env_file:
+      - .env
+    user: "${UID}:${GID}"
+    volumes:
+      - ./backend/app/media:/app/media
+    depends_on:
+      - rabbitmq
+    command: celery -A chat_analyzer worker -l info
+    networks:
+      - ca_network
+
+  celery-beat:
+    build: ./backend
+    container_name: ca_celery_beat
+    env_file:
+      - .env
+    user: "${UID}:${GID}"
+    volumes:
+      - ./backend/app/media:/app/media
+    depends_on:
+      - rabbitmq
+      - db
+    command:  celery -A chat_analyzer beat --loglevel=debug --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    networks:
+      - ca_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: ca_elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      discovery.type: single-node
+    networks:
+      - efk
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.8.0
+    container_name: ca_kibana
+    ports:
+      - 5601:5601
+    networks:
+      - efk
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.8.0
+    command: filebeat -e -strict.perms=false
+    container_name: ca_filebeat
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./backend/app/media:/usr/share/filebeat/logs
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    networks:
+      - efk
+    links:
+      - kibana
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+
+networks:
+  efk:
+    driver: bridge
+  ca_network:

@@ -4,6 +4,8 @@ from common.constants.sources import SOURCE_JOTFORM, SOURCE_CHATGPT, SOURCE_FILE
 
 
 class ConnectionSerializer(serializers.ModelSerializer):
+    """Serializer for Connection model."""
+
     class Meta:
         model = Connection
         fields = [
@@ -41,6 +43,8 @@ class ConnectionSerializer(serializers.ModelSerializer):
 
 
 class AgentSerializer(serializers.ModelSerializer):
+    """Serializer for Agent model."""
+
     id = serializers.CharField(required=True)
 
     class Meta:
@@ -62,7 +66,6 @@ class AgentSerializer(serializers.ModelSerializer):
         }
 
     def validate_id(self, value):
-        print(f"Validating agent ID: {value}")
         if not value:
             raise serializers.ValidationError("Agent ID cannot be empty.")
         if not isinstance(value, str):
@@ -80,7 +83,42 @@ class AgentSerializer(serializers.ModelSerializer):
         return data
 
 
+class AgentDetailSerializer(serializers.ModelSerializer):
+    """Serializer for Agent model."""
+
+    class Meta:
+        model = Agent
+        fields = [
+            "id",
+            "name",
+            "avatar_url",
+            "connection",
+            "jotform_render_url",
+        ]
+
+    def to_representation(self, instance):
+        statistics = self.context.get("statistics", {})
+
+        return {
+            "id": instance.id,
+            "avatar_url": instance.avatar_url,
+            "name": instance.name,
+            "jotform_render_url": instance.jotform_render_url,
+            "total_conversations": statistics.get("total_conversations"),
+            "total_messages": statistics.get("total_messages"),
+            "sentiment_score": statistics.get("sentiment_score", 0).__round__(2),
+            "total_sentiment_count": statistics.get("total_sentiment_count"),
+            "super_positive_count": statistics.get("super_positive_count"),
+            "positive_count": statistics.get("positive_count"),
+            "neutral_count": statistics.get("neutral_count"),
+            "negative_count": statistics.get("negative_count"),
+            "super_negative_count": statistics.get("super_negative_count"),
+        }
+
+
 class FileSourceSerializer(serializers.Serializer):
+    """Serializer for file source connections."""
+
     agent_name = serializers.CharField(max_length=255)
     file = serializers.FileField()
     agent_avatar_url = serializers.CharField(

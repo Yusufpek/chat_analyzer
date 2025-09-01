@@ -8,10 +8,13 @@ from chat.utils.jotform_conversation import (
     get_conversations,
 )
 
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 
 class Command(CustomBaseCommand):
     help = "Fetch JotForm agent conversations"
-    command_name = "fetch_jotform_agent_conversations_and_histories"
+    command_name = "fetch_jotform_conversations_and_histories"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -50,9 +53,23 @@ class Command(CustomBaseCommand):
                 user=user,
             ).values_list("id", flat=True)
         )
-        new_conversation_ids = []
+
+        # Offset for JotForm timezone difference
+        time_filter = (
+            datetime.now(ZoneInfo("America/New_York"))
+            - timedelta(minutes=max(connection.sync_interval, 30))
+            - timedelta(days=1)
+        )
+
+        last_conversations = Conversation.objects.filter(
+            source=SOURCE_JOTFORM, user=user, created_at__gte=time_filter
+        ).values("id", "agent_id")
+        last_conversations = {cov["id"]: cov["agent_id"] for cov in last_conversations}
+
+        time_filter_str = time_filter.strftime("%Y-%m-%d %H:%M:%S")
 
         conversations = []
+        new_conversations_dict = {}
         for agent_id in agent_ids:
             # request
             convs = get_conversations(
@@ -60,13 +77,13 @@ class Command(CustomBaseCommand):
                 agent_id,
                 user.id,
                 self.logger,
-                conversation_ids,
+                filter={"updated_at:gt": time_filter_str},
+                conversation_ids=conversation_ids,
             )
             if convs:
                 conversations.extend(convs)
-                new_conversation_ids.extend(
-                    [conv.id for conv in convs if conv.id not in conversation_ids]
-                )
+                for conv in convs:
+                    new_conversations_dict[conv.id] = agent_id
 
         if conversations:
             Conversation.objects.bulk_create(conversations)
@@ -82,13 +99,15 @@ class Command(CustomBaseCommand):
             conversation__source=SOURCE_JOTFORM,
             conversation__user=user,
         ).values_list("id", flat=True)
-        conversation_ids.extend(new_conversation_ids)
-        for new_chat_id in conversation_ids:
+
+        new_conversations_dict.update(last_conversations)
+        for new_chat_id, agent_id in new_conversations_dict.items():
             chat_messages = get_chat_messages(
                 service,
                 agent_id,
                 new_chat_id,
                 self.logger,
+                filter={"created_at:gt": time_filter_str},
                 chat_message_ids=chat_message_ids,
             )
             if chat_messages:

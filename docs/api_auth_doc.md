@@ -3,8 +3,7 @@
 ## 1. Register
 
 **Endpoint:** `/api/auth/register/`  
-**Method:** `POST`  
-**Description:** Registers a new user and returns JWT access and refresh tokens.
+**Description:** Registers a new user, returns user information, and sets JWT access and refresh tokens in cookies.
 
 ### Request Body
 
@@ -12,7 +11,7 @@
 {
   "username": "your_username",
   "password": "your_password",
-  "email": "your_email@example.com",
+  "email": "your_email@gmail.com",
   "first_name": "YourFirstName",
   "last_name": "YourLastName"
 }
@@ -22,26 +21,24 @@
 
 ```json
 {
+  "status": "SUCCESS",
   "content": {
-    "pk": 1,
+    "pk": 18,
     "username": "your_username",
-    "email": "your_email@example.com",
+    "email": "your_mail@gmail.com",
     "first_name": "YourFirstName",
     "last_name": "YourLastName",
-    "profile_image": null,
-    "tokens": {
-      "refresh": "<refresh_token>",
-      "access": "<access_token>"
-    }
-  }
+    "profile_image": null
+  },
+  "duration": "492.834 ms"
 }
 ```
 
-### Error Response
+### Error Response (400)
 
 ```json
 {
-  "error": "Validation error details"
+  "username": ["A user with that username already exists."]
 }
 ```
 
@@ -50,8 +47,7 @@
 ## 2. Login
 
 **Endpoint:** `/api/auth/login/`  
-**Method:** `POST`  
-**Description:** Authenticates a user and returns JWT access and refresh tokens.
+**Description:** Authenticates a user, returns username, and sets JWT access and refresh tokens in cookies.
 
 ### Request Body
 
@@ -66,8 +62,11 @@
 
 ```json
 {
-  "refresh": "<refresh_token>",
-  "access": "<access_token>"
+  "status": "SUCCESS",
+  "content": {
+    "username": "admin"
+  },
+  "duration": "701.416 ms"
 }
 ```
 
@@ -84,30 +83,26 @@
 ## 3. Token Refresh
 
 **Endpoint:** `/api/auth/refresh/`  
-**Method:** `POST`  
-**Description:** Returns a new access token by using a valid refresh token.
-
-### Request Body
-
-```json
-{
-  "refresh": "<refresh_token>"
-}
-```
+**Authentication:** Required (Login with tokens in cookies) <br>
+**Description:** Generates new access and refresh tokens using the refresh token stored in cookies. The new tokens are saved to cookies automatically.
 
 ### Response Body
 
 ```json
 {
-  "access": "<new_access_token>"
+  "status": "SUCCESS",
+  "content": {
+    "message": "Tokens refreshed successfully."
+  },
+  "duration": "46.343 ms"
 }
 ```
 
-### Error Response
+### Error Response (401)
 
 ```json
 {
-  "error": "Token is invalid or expired"
+  "detail": "Authentication credentials were not provided."
 }
 ```
 
@@ -117,36 +112,25 @@
 
 **Endpoint:** `/api/auth/logout/`  
 **Method:** `POST`  
+**Authentication:** Required (Login with tokens in cookies) <br>
 **Description:** Logs out the user by invalidating the refresh token.
-
-### Request Body
-
-```json
-{
-  "refresh_token": "<refresh_token>"
-}
-```
 
 ### Response Body
 
 ```json
 {
-  "detail": "Successfully logged out."
+  "status": "SUCCESS",
+  "content": {
+    "detail": "Successfully logged out."
+  },
+  "duration": "120.26 ms"
 }
 ```
 
-### Error Response
+### Error Response (401)
 
 ```json
 {
-  "error": "Refresh token required."
-}
-```
-
-or
-
-```json
-{
-  "error": "Invalid or expired refresh token."
+  "detail": "Authentication credentials were not provided."
 }
 ```

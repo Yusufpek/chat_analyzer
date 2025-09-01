@@ -25,6 +25,9 @@ COPY app/ ./
 
 RUN chown -R chat_analyzer:chat_analyzer /app && chmod -R 755 /app
 
+RUN chown -R $(id -u):$(id -g) /app/media
+RUN chmod -R 775 /app/media
+
 # Switch to the non-root user
 USER chat_analyzer
 

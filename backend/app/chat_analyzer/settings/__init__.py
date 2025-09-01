@@ -6,7 +6,9 @@ include(
     "auth.py",
     "apps_project.py",
     "db.py",
-    "email.py",
+    "mail.py",
     "middleware.py",
+    "ai_service.py",
     "logging.py",
+    "celery.py",
 )

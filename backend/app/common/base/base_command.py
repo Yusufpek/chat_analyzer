@@ -18,11 +18,13 @@ class CustomBaseCommand(BaseCommand):
         self.log_file_path = None
         self.now = datetime.now()
 
-    def setup_logger(self, log_file_name=f"{command_name}.log"):
+    def setup_logger(self, log_file_name=None):
         """
         Sets up the logger for the command with time-based foldering.
         """
-        # Create a logs directory with time-based foldering (e.g., logs/YYYY/MM/DD)
+        if not log_file_name:
+            log_file_name = f"{self.command_name}.log"
+
         log_dir = os.path.join(
             settings.MEDIA_ROOT,
             "management_logs",
@@ -39,6 +41,8 @@ class CustomBaseCommand(BaseCommand):
         # Set up the logger
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.DEBUG)
+
+        self.logger.handlers = []
 
         # File handler
         file_handler = logging.FileHandler(self.log_file_path)

@@ -1,0 +1,76 @@
+import json
+from .ai_service import AIService, EngineType
+
+
+class ClaudeService(AIService):
+    model = None
+
+    def __init__(self, model: str = "claude-sonnet-4-20250514", max_tokens: int = 1024):
+        super().__init__(EngineType.ANTHROPIC_CLAUDE, "v1/messages")
+        self.headers["anthropic-version"] = "2023-06-01"
+        self.model = model
+        self.max_tokens = max_tokens
+
+    def send_request(self, content):
+        data = {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": content,
+                },
+            ],
+        }
+
+        return super().send_request(data)
+
+    def parse_response(self, response):
+        """
+        Parses the response from the OpenAI service.
+        This method can be overridden by subclasses to handle specific response formats.
+        """
+        try:
+            if not isinstance(response, dict):
+                return response
+            if "content" not in response or not response["content"]:
+                return "No content found in response."
+            if "text" not in response["content"][0]:
+                return "No text found in the content."
+            return response["content"][0]["text"]
+        except Exception as e:
+            print(f"Error parsing response: {e}")
+        return response
+
+    def sentimental_analysis(self, conversation_messages):
+        """
+        Performs sentiment analysis on the provided conversation messages using OpenAI's API.
+        :param conversation_messages: List of messages in the conversation.
+        :return: A tuple containing the sentiment label and details.
+        :rtype: tuple(str, str)
+        """
+        if not conversation_messages:
+            raise ValueError(
+                "No conversation messages provided for sentiment analysis."
+            )
+
+        prompt = (
+            "Here is a conversation between an AI assistant and a user. "
+            "Analyze the sentiment of the user's messages and provide a summary of their emotional state. "
+            "Focus only on the user's messages.\n\n"
+            f"{conversation_messages}\n\n"
+            "Provide the sentiment analysis in the following format:\n"
+            "{\n"
+            '  "sentiment": "<SUPER_POSITIVE/POSITIVE/NEUTRAL/NEGATIVE/SUPER_NEGATIVE>",\n'
+            '  "details": "<brief explanation of the sentiment>"\n'
+            "}"
+        )
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(self.parse_response(response))
+        if "sentiment" in parsed_response and "details" in parsed_response:
+            return parsed_response["sentiment"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for sentiment analysis."
+        )

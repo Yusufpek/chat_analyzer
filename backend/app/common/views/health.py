@@ -5,6 +5,10 @@ from common.utils.jotform_api import JotFormAPIService
 
 
 class PingView(BaseAPIView):
+    """
+    Simple ping view to check if the service is up.
+    """
+
     authentication_classes = []
     permission_classes = []
 
@@ -13,6 +17,10 @@ class PingView(BaseAPIView):
 
 
 class JotFormApiCheckView(BaseAPIView):
+    """
+    Check the status of the JotForm API.
+    """
+
     def get_request(self, request):
         try:
             service = JotFormAPIService(request.user)
@@ -37,6 +45,10 @@ class JotFormApiCheckView(BaseAPIView):
 
 
 class JotFormApiChatCheckView(BaseAPIView):
+    """
+    Check the chat history of a specific chat in JotForm API.
+    """
+
     def get_request(self, request, *args, **kwargs):
         agent_id = kwargs.get("agent_id")
         if not agent_id:

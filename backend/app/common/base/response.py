@@ -5,6 +5,10 @@ from rest_framework import status
 
 
 class ResponseStatus(enum.Enum):
+    """
+    Enum for response statuses.
+    """
+
     NOT_FOUND = 404
     BAD_REQUEST = 400
     INTERNAL_SERVER_ERROR = 500
@@ -16,6 +20,10 @@ class ResponseStatus(enum.Enum):
 
 
 def code_to_status(code):
+    """
+    Maps HTTP status codes to ResponseStatus enum.
+    """
+
     code_to_status_map = {
         200: ResponseStatus.SUCCESS,
         201: ResponseStatus.CREATED,
@@ -29,6 +37,9 @@ def code_to_status(code):
 
 
 def get_status_to_response(response_status, content, duration, cookies=None):
+    """
+    Maps the response status to the appropriate response class.
+    """
     if response_status == ResponseStatus.SUCCESS:
         return SuccessResponse(
             status_message=response_status.name,
@@ -87,6 +98,10 @@ def get_status_to_response(response_status, content, duration, cookies=None):
 
 
 class SuccessResponse(JsonResponse):
+    """
+    Success response for API requests.
+    """
+
     def __init__(
         self,
         status_message=None,
@@ -118,6 +133,10 @@ class SuccessResponse(JsonResponse):
 
 
 class ErrorResponse(JsonResponse):
+    """
+    Error response for API requests.
+    """
+
     def __init__(
         self,
         error_message,
