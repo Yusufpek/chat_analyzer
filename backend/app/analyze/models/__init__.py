@@ -1,1 +1,1 @@
-from .ai_log import *  # noqa: F403
+from .log import *  # noqa: F403

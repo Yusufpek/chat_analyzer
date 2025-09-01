@@ -16,3 +16,12 @@ class AIServiceLog(HTTPServiceLogModel):
 
     def __str__(self):
         return f"{self.service_engine} - {self.status_code} - {self.created_at}"
+
+
+class QDrantServiceLog(HTTPServiceLogModel):
+    """
+    Represents a log entry for QDrant service interactions.
+    """
+
+    def __str__(self):
+        return f"{self.endpoint} - {self.status_code} - {self.created_at}"

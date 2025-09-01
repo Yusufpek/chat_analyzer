@@ -1,7 +1,7 @@
 import requests
 
 from django.conf import settings
-from analyze.models.ai_log import AIServiceLog
+from analyze.models.log import AIServiceLog
 from .engine_types import EngineType
 
 
