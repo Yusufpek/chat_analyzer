@@ -21,6 +21,8 @@ class QDrantService:
         self.prefix = "chat_analyzer"
 
     def parse_response(self, response):
+        if "status" in response and response["status"] != "ok":
+            return response
         if "result" in response:
             return response["result"]
         return response
