@@ -36,7 +36,10 @@ class EmbeddingService(AIService):
                 points.append(
                     {
                         "id": message["embedding_id"],
-                        "payload": {"message": message["content"]},
+                        "payload": {
+                            "content": message["content"],
+                            "sender_type": message["sender_type"],
+                        },
                         "vector": response,
                     }
                 )

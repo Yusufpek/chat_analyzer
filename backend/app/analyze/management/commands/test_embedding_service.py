@@ -14,29 +14,26 @@ class Command(CustomBaseCommand):
     def process(self, *args, **options):
         service = EmbeddingService()
         messages = (
-            ChatMessage.objects.values("id", "sender_type", "content", "conversation")
+            ChatMessage.objects.values(
+                "embedding_id", "sender_type", "content", "conversation"
+            )
             .annotate(agent_id=F("conversation__agent_id"))
             .order_by("-created_at")
         )
         agent_messages = {}
         for message in messages:
-            agent_messages.setdefault(
-                message["agent_id"], {"assistant": [], "user": []}
-            )[message["sender_type"]].append(message)
+            agent_messages.setdefault(message["agent_id"], []).append(message)
         try:
             for agent_id, messages in agent_messages.items():
-                embed_messages = messages["user"]
-                break
-
-            response = service.generate_embedding(embed_messages)
-            if response:
-                self.logger.info(
-                    "Embedding Service is reachable and working correctly."
-                )
-
-                self.logger.info(f"Response: {response}")
-            else:
-                self.logger.error(f"Embedding Service returned an error: {response}")
+                response = service.generate_embedding(messages)
+                if response:
+                    self.logger.info(
+                        "Embedding Service is reachable and working correctly."
+                    )
+                else:
+                    self.logger.error(
+                        f"Embedding Service returned an error: {response}"
+                    )
 
         except Exception as e:
             self.logger.error(f"An error occurred: {str(e)}")

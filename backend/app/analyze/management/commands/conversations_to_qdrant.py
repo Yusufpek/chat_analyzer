@@ -24,50 +24,44 @@ class Command(CustomBaseCommand):
 
         agent_messages = {}
         for message in messages:
-            agent_messages.setdefault(
-                message["agent_id"], {"assistant": [], "user": []}
-            )[message["sender_type"]].append(message)
+            agent_messages.setdefault(message["agent_id"], []).append(message)
 
         if not agent_messages:
             self.logger.warning("No messages found for embedding.")
             return
         try:
-            for agent_id, details in agent_messages.items():
-                for type, messages in details.items():
-                    exists = qdrant_service.check_collection_exists(
-                        f"{agent_id}_{type}"
-                    )
-                    if not exists:
-                        response = qdrant_service.create_collection(
-                            f"{agent_id}_{type}"
+            for agent_id, messages in agent_messages.items():
+                exists = qdrant_service.check_collection_exists(agent_id)
+                if not exists:
+                    response = qdrant_service.create_collection(agent_id)
+                    if not response:
+                        self.logger.error(
+                            f"Failed to create collection for agent_id {agent_id}: {response}"
                         )
-                        if not response:
-                            self.logger.error(
-                                f"Failed to create collection for agent_id {agent_id}: {response}"
-                            )
-                            continue
+                        continue
 
-                    embedding_response = embedding_service.generate_embedding(messages)
-                    if embedding_response:
-                        qdrant_response = qdrant_service.add_messages_to_collection(
-                            f"{agent_id}_{type}", embedding_response
+                embedding_response = embedding_service.generate_embedding(messages)
+                if embedding_response:
+                    qdrant_response = qdrant_service.add_messages_to_collection(
+                        agent_id,
+                        embedding_response,
+                    )
+                    if qdrant_response:
+                        ids = [message["embedding_id"] for message in messages]
+                        updated_count = ChatMessage.objects.filter(
+                            embedding_id__in=ids
+                        ).update(embedded_in_qdrant=True)
+                        self.logger.info(
+                            f"Updated {updated_count} messages as embedded in Qdrant collection {agent_id}."
                         )
-                        if qdrant_response:
-                            ids = [message["embedding_id"] for message in messages]
-                            updated_count = ChatMessage.objects.filter(
-                                embedding_id__in=ids
-                            ).update(embedded_in_qdrant=True)
-                            self.logger.info(
-                                f"Updated {updated_count} messages as embedded in Qdrant collection {agent_id}_{type}."
-                            )
-                        else:
-                            self.logger.error(
-                                f"Failed to add messages to Qdrant collection {agent_id}_{type}: {qdrant_response}"
-                            )
                     else:
                         self.logger.error(
-                            f"Embedding Service returned an error: {embedding_response}"
+                            f"Failed to add messages to Qdrant collection {agent_id}: {qdrant_response}"
                         )
+                else:
+                    self.logger.error(
+                        f"Embedding Service returned an error: {embedding_response}"
+                    )
 
         except Exception as e:
             self.logger.error(f"An error occurred: {str(e)}")
