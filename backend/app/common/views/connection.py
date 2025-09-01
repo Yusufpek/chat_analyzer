@@ -275,7 +275,7 @@ class AgentView(BaseAPIView):
                 )
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
-        return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors},
+        return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}
 
 
 class AgentDetailView(BaseAPIView):
