@@ -44,3 +44,9 @@ class EmbeddingService(AIService):
                     }
                 )
         return points
+
+    def generate_query_vector(self, query: str):
+        response = self.send_request(query)
+        if response:
+            return response
+        return None
