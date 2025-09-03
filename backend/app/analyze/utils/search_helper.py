@@ -19,6 +19,17 @@ def search_agent_with_qdrant(agent_id: str, query: str):
             collection_name=agent_id, query=query_vector, limit=10
         )
         if response:
+            embed_ids = []
+            for message in response:
+                embed_ids.append(message["id"])
+            messages = {
+                message.embedding_id: message.conversation.id
+                for message in ChatMessage.objects.filter(embedding_id__in=embed_ids)
+            }
+            for message in response:
+                message["conversation_id"] = messages.get(
+                    message.pop("id"),
+                )
             return True, response
         else:
             return False, "No response from QDrant Service"
