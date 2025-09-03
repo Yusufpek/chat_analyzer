@@ -44,6 +44,9 @@ def get_grouped_messages(
     embed_id_to_messages = {msg.embedding_id: msg for msg in messages}
     message_ids = messages.values_list("embedding_id", flat=True)
 
+    if len(message_ids) < 2:
+        return False, "Not enough messages found"
+
     response = QDrantService().get_grouped_messages(
         agent_id,
         message_ids,
