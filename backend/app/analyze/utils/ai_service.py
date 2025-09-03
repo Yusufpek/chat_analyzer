@@ -69,3 +69,10 @@ class AIService:
         This method should be implemented by subclasses.
         """
         raise NotImplementedError("Subclasses must implement this method.")
+
+    def context_change_analysis(self, conversation_messages: str):
+        """
+        Performs context change analysis on the provided conversation messages.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")

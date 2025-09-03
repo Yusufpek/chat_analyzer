@@ -70,7 +70,7 @@ class OpenAIService(AIService):
         )
 
         response = self.send_request(prompt)
-        parsed_response = json.loads(self.parse_response(response))
+        parsed_response = json.loads(response)
 
         if "sentiment" in parsed_response and "details" in parsed_response:
             return parsed_response["sentiment"], parsed_response["details"]
@@ -103,10 +103,60 @@ class OpenAIService(AIService):
         )
 
         response = self.send_request(prompt)
-        parsed_response = json.loads(self.parse_response(response))
+        parsed_response = json.loads(response)
 
         if "label" in parsed_response and "details" in parsed_response:
             return parsed_response["label"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for label analysis."
+        )
+
+    def context_change_analysis(self, conversation_messages):
+        if not conversation_messages:
+            raise ValueError(
+                "No conversation messages provided for sentiment analysis."
+            )
+
+        prompt = f"""
+        Here is a conversation between a user and an AI assistant. Analyze the conversation to determine the following:
+
+        1. The overall context of the conversation.
+        2. The main topics discussed during the conversation.
+        3. Identify where the context of the conversation changed (if any), and describe the transitions between topics.
+        4. Focus on user messages
+
+        Provide the analysis in the following structured format:
+        {{
+            "overall_context": "<brief summary of the overall context>",
+            "topics": [
+            {{
+                "topic": "<name of the topic>",
+                "details": "<brief explanation of the topic>",
+                "start_message": "<index or content of the message where the topic starts>",
+                "end_message": "<index or content of the message where the topic ends>"
+            }},
+            ],
+            "context_changes": [
+                {{
+                "from_topic": "<name of the previous topic>",
+                    "to_topic": "<name of the new topic>",
+                    "change_message": "<index or content of the message where the context changed>",
+                    "details": "<brief explanation of the context change>"
+                }},
+            ]
+        }}
+        Conversation:
+        {conversation_messages}
+
+        Provide the analysis in JSON format.
+        """
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(response)
+
+        if "topics" in parsed_response and "context_changes" in parsed_response:
+            return parsed_response["topics"], parsed_response["context_changes"]
 
         raise ValueError(
             "Unexpected response format from OpenAI API for label analysis."
