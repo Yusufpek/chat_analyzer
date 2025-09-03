@@ -37,7 +37,10 @@ def get_grouped_messages(
     :param sender_type: The type of the sender (user or assistant).
     :return: A dictionary containing the grouped messages.
     """
-    messages = ChatMessage.objects.filter(conversation__agent_id=agent_id)
+    messages = ChatMessage.objects.filter(
+        conversation__agent_id=agent_id,
+        sender_type=sender_type,
+    )
     embed_id_to_messages = {msg.embedding_id: msg for msg in messages}
     message_ids = messages.values_list("embedding_id", flat=True)
 

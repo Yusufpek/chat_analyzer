@@ -20,7 +20,7 @@ class Command(CustomBaseCommand):
             )
             if message:
                 if "vector" in message:
-                    message.vector = message["vector"][:3]
+                    message["vector"] = message["vector"][:3]
                 self.logger.info(f"Message: {message}")
                 self.logger.info("Get message successful")
             else:
