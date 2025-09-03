@@ -21,7 +21,7 @@ class BaseAPIView(generics.GenericAPIView):
         """
         return ResponseStatus.BAD_REQUEST, {"message": "Delete request not implemented"}
 
-    def get_request(self, request) -> dict:
+    def get_request(self, request, *args, **kwargs) -> dict:
         """
         Handles GET requests.
         """
