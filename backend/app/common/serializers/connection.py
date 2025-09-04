@@ -55,6 +55,7 @@ class AgentSerializer(serializers.ModelSerializer):
             "avatar_url",
             "connection",
             "jotform_render_url",
+            "label_choices",
         ]
 
     def to_representation(self, instance):
@@ -63,6 +64,7 @@ class AgentSerializer(serializers.ModelSerializer):
             "avatar_url": instance.avatar_url,
             "name": instance.name,
             "jotform_render_url": instance.jotform_render_url,
+            "label_choices": instance.label_choices,
         }
 
     def validate_id(self, value):

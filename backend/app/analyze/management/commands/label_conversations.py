@@ -4,12 +4,13 @@ from analyze.utils.replicate_service import ReplicateService
 from analyze.utils.claude_service import ClaudeService
 from chat.models.conversation import Conversation, ChatMessage
 from chat.serializers.conversation import ChatMessageSerializer
+from common.models.connection import Agent
 from common.base.base_command import CustomBaseCommand
 
 
 class Command(CustomBaseCommand):
-    command_name = "get_sentimental_analysis"
-    help = "Get sentimental analysis for conversations using AI services."
+    command_name = "label_conversations"
+    help = "Label conversations using AI services."
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
@@ -18,6 +19,19 @@ class Command(CustomBaseCommand):
             type=str,
             default=EngineType.OPENAI.value,
             help="The AI service engine to test (default: openai).",
+        )
+        parser.add_argument(
+            "--agent_id",
+            type=str,
+            required=True,
+            help="The ID of the agent whose conversations to label.",
+        )
+
+        parser.add_argument(
+            "--all",
+            action="store_true",
+            default=False,
+            help="Whether to label all conversations (default: False).",
         )
 
     def process(self, *args, **options):
@@ -37,22 +51,39 @@ class Command(CustomBaseCommand):
             )
             return
 
+        agent_id = options["agent_id"]
+        if not agent_id:
+            self.logger.error("Agent ID is required.")
+            return
+
+        agent = Agent.objects.filter(id=agent_id).first()
+        if not agent:
+            self.logger.error(f"No agent found with ID: {agent_id}")
+            return
+        if not agent.label_choices:
+            self.logger.error(
+                f"Agent with ID: {agent_id} has no label choices defined."
+            )
+            return
+
+        self.logger.info(f"Found agent with ID: {agent.id}")
+
         conversations = Conversation.objects.filter(
-            analysis_result__isnull=True,
+            agent_id=agent.id,
             messages__isnull=False,
-        ).distinct()
+        )
+
+        if not options["all"]:
+            conversations = conversations.filter(label__isnull=True)
+
+        conversations = conversations.distinct()
+
         if not conversations.exists():
             self.logger.info("No conversations found for analysis.")
             return
         self.logger.info(f"Found {conversations.count()} conversations for analysis.")
 
-        sentimental_counts = {
-            "super_positive": 0,
-            "positive": 0,
-            "neutral": 0,
-            "negative": 0,
-            "super_negative": 0,
-        }
+        label_counts = {label.lower(): 0 for label in agent.label_choices}
 
         for conversation in conversations:
             self.logger.info(f"Analyzing conversation ID: {conversation.id}")
@@ -71,23 +102,25 @@ class Command(CustomBaseCommand):
                         for message in messages
                     ]
                 )
-                sentiment, details = service.sentimental_analysis(text)
-                if sentiment and details:
+                labels = "/".join(agent.label_choices)
+                labels_str = f"<{labels}>"
+                label, details = service.label_analysis(text, labels_str)
+                if label and details:
                     self.logger.info("AI Service is reachable and working correctly.")
-                    self.logger.info(f"Sentiment: {sentiment}")
+                    self.logger.info(f"Label: {label}")
                     self.logger.info(f"Details: {details}")
-                    conversation.analysis_result = sentiment.upper()
-                    conversation.analysis_details = f"{engine}: {details}"
+                    conversation.label = label.upper()
+                    # conversation.label_details = f"{engine}: {details}"
                     conversation.save()
                     self.logger.info(
                         f"Conversation ID {conversation.id} analyzed successfully."
                     )
-                    sentimental_counts[sentiment.lower()] += 1
+                    label_counts[label.lower()] += 1
                 else:
                     self.logger.error(
-                        f"AI Service return format is wrong: {sentiment} - {details}"
+                        f"AI Service return format is wrong: {label} - {details}"
                     )
             except Exception as e:
                 self.logger.error(f"An error occurred: {str(e)}")
 
-        self.logger.info(f"Sentiment analysis completed. Counts: {sentimental_counts}")
+        self.logger.info(f"Label analysis completed. Counts: {label_counts}")
