@@ -2,6 +2,7 @@ from common.base.base_command import CustomBaseCommand
 from analyze.utils.search_helper import get_grouped_messages
 from analyze.models.statistics import GroupedMessages
 from common.models.connection import Agent
+from chat.models.conversation import ChatMessage
 
 
 class Command(CustomBaseCommand):
@@ -34,11 +35,26 @@ class Command(CustomBaseCommand):
         grouped_messages = []
         for agent_id in agent_ids:
             try:
+                grouped = GroupedMessages.objects.filter(agent_id=agent_id).first()
+                if (
+                    grouped
+                    and not ChatMessage.objects.filter(
+                        conversation__agent_id=agent_id,
+                        sender_type=sender_type,
+                        saved_at__gte=grouped.created_at,
+                    ).exists()
+                ):
+                    self.logger.info(
+                        f"Agent: {agent_id} - No new messages found. Skipping."
+                    )
+                    continue
+
                 status, data = get_grouped_messages(agent_id, sender_type=sender_type)
                 if status:
                     self.logger.info(f"Agent: {agent_id} - Data: {data}")
                     # delete old grouped messages
-                    GroupedMessages.objects.filter(agent_id=agent_id).delete()
+                    if grouped:
+                        grouped.delete()
 
                     # create new grouped messages
                     grouped_messages.append(
