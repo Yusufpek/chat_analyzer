@@ -23,6 +23,7 @@ class Conversation(models.Model):
     ]
 
     id = models.CharField(max_length=255, primary_key=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(null=True, blank=True)
     saved_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
