@@ -179,7 +179,6 @@ class OpenAIService(AIService):
         """
 
         response = self.send_request(prompt)
-        print(response)
         parsed_response = json.loads(response)
 
         if "title" in parsed_response and "details" in parsed_response:

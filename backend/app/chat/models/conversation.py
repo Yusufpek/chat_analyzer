@@ -29,7 +29,7 @@ class Conversation(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     analysis_result = models.CharField(max_length=100, null=True, blank=True)
     analysis_details = models.TextField(null=True, blank=True)
-    assistant_avatar_url = models.URLField(null=True, blank=True)
+
     source = models.CharField(
         max_length=255,
         choices=SOURCE_CHOICES,
