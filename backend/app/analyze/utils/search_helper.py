@@ -3,11 +3,12 @@ from analyze.utils.embedding_service import EmbeddingService
 from chat.models.conversation import ChatMessage
 
 
-def search_agent_with_qdrant(agent_id: str, query: str):
+def search_agent_with_qdrant(agent_id: str, query: str, sender_type: str = None):
     """
     Search for messages in a QDrant collection.
     :param agent_id: The ID of the agent.
     :param query: The search query.
+    :param sender_type: The type of the sender (user or assistant).
     :return: A dictionary containing the search results.
     """
     qdrant_service = QDrantService()
@@ -16,7 +17,10 @@ def search_agent_with_qdrant(agent_id: str, query: str):
     try:
         query_vector = embedding_service.generate_query_vector(query)
         response = qdrant_service.get_messages_with_query(
-            collection_name=agent_id, query=query_vector, limit=10
+            collection_name=agent_id,
+            query=query_vector,
+            limit=10,
+            sender_type=sender_type,
         )
         if response:
             embed_ids = []

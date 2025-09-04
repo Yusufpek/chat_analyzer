@@ -13,6 +13,13 @@ class QDrantSearchView(BaseAPIView):
 
         agent_id = request.data.get("agent_id")
         query = request.data.get("query")
+        sender_type = request.data.get("sender_type", None)
+
+        if sender_type not in [None, "user", "assistant"]:
+            return (
+                ResponseStatus.BAD_REQUEST,
+                {"error": "sender_type must be either 'user' or 'assistant'"},
+            )
 
         if not agent_id or not query:
             return (
@@ -24,7 +31,11 @@ class QDrantSearchView(BaseAPIView):
         if not agent:
             return ResponseStatus.NOT_FOUND, {"error": "Agent not found"}
 
-        status, data = search_agent_with_qdrant(agent_id, query)
+        status, data = search_agent_with_qdrant(
+            agent_id,
+            query,
+            sender_type=sender_type,
+        )
         if not status:
             return ResponseStatus.INTERNAL_SERVER_ERROR, {"error": data}
         return ResponseStatus.SUCCESS, data
