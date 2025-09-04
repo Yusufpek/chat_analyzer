@@ -52,6 +52,11 @@ def get_grouped_messages(
     :param sender_type: The type of the sender (user or assistant).
     :return: A dictionary containing the grouped messages.
     """
+
+    service = QDrantService()
+    if not service.check_collection_exists(agent_id):
+        return False, "QDrant collection does not exist"
+
     messages = ChatMessage.objects.filter(
         conversation__agent_id=agent_id,
         sender_type=sender_type,
@@ -62,7 +67,7 @@ def get_grouped_messages(
     if len(message_ids) < 2:
         return False, "Not enough messages found"
 
-    response = QDrantService().get_grouped_messages(
+    response = service.get_grouped_messages(
         agent_id,
         message_ids,
         sender_type,
