@@ -25,6 +25,7 @@ from chat.tasks.jotform_tasks import (
 from common.utils.filter_mapper import filter_mapper
 from chat.models.conversation import Conversation, ChatMessage
 from analyze.tasks.ai_tasks import label_agent_conversations_task
+from analyze.tasks.qdrant_tasks import delete_collection_task
 
 
 class ConnectionView(BaseAPIView):
@@ -80,6 +81,8 @@ class ConnectionView(BaseAPIView):
                 ).delete()
                 Conversation.objects.filter(agent_id__in=agent_ids).delete()
                 Agent.objects.filter(id__in=agent_ids).delete()
+                for agent_id in agent_ids:
+                    delete_collection_task.delay_on_commit(agent_id=agent_id)
                 connection.delete()
             return ResponseStatus.SUCCESS, {
                 "message": "Connection deleted successfully with all associated data."
@@ -240,6 +243,7 @@ class AgentView(BaseAPIView):
                     conversation_id__in=conversation_ids
                 ).delete()
                 Conversation.objects.filter(id__in=conversation_ids).delete()
+                delete_collection_task.delay_on_commit(agent_id=agent.id)
                 agent.delete()
             return ResponseStatus.SUCCESS, {"message": "Agent deleted successfully."}
         except Exception as e:
