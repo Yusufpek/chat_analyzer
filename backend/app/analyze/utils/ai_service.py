@@ -76,3 +76,10 @@ class AIService:
         This method should be implemented by subclasses.
         """
         raise NotImplementedError("Subclasses must implement this method.")
+
+    def get_conversation_title(self, conversation_messages: str):
+        """
+        Generates a title for the provided conversation messages.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")

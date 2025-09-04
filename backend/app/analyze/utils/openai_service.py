@@ -161,3 +161,30 @@ class OpenAIService(AIService):
         raise ValueError(
             "Unexpected response format from OpenAI API for label analysis."
         )
+
+    def get_conversation_title(self, conversation_messages):
+        if not conversation_messages:
+            raise ValueError("No conversation messages provided for title extraction.")
+
+        prompt = f"""
+        Here is a conversation between a user and an AI assistant.
+        Focus only on the user's messages and create a concise, descriptive title that summarizes the main topic or purpose of the conversation.
+        Detect the language of the user's messages and generate the title in the same language.
+        Conversation:\n{conversation_messages}
+        Provide the title in the following format:
+        {{
+            "title": "<concise and descriptive title in the language of the messages up to 25 characters>",
+            "details": "<brief explanation of the title>"
+        }}
+        """
+
+        response = self.send_request(prompt)
+        print(response)
+        parsed_response = json.loads(response)
+
+        if "title" in parsed_response and "details" in parsed_response:
+            return parsed_response["title"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for title extraction."
+        )
