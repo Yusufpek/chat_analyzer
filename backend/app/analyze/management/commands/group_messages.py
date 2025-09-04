@@ -68,7 +68,7 @@ class Command(CustomBaseCommand):
                         f"QDrant Query Service returned an error: {data} - agent: {agent_id}"
                     )
             except Exception as e:
-                self.logger.error(f"An error occurred: {str(e)}")
+                self.logger.error(f"An error occurred: {str(e)} - agent: {agent_id}")
         else:
             self.logger.info("No agent IDs provided.")
 
