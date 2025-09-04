@@ -1,4 +1,3 @@
-from venv import logger
 from analyze.utils.engine_types import EngineType
 from analyze.utils.openai_service import OpenAIService
 from analyze.utils.replicate_service import ReplicateService
