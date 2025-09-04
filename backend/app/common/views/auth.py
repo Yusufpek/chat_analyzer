@@ -22,32 +22,47 @@ class UserRegisterView(BaseAPIView):
     serializer_class = UserSerializer
 
     def post_request(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        token = RefreshToken.for_user(user)
-        data = serializer.data
-        auth_cookie = {
-            "action": "set",
-            "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
-            "value": str(token.access_token),
-            "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-        }
-        refresh_cookie = {
-            "action": "set",
-            "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
-            "value": str(token),
-            "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-        }
-        data["cookies"] = [auth_cookie, refresh_cookie]
-        send_register_email_task.delay_on_commit(user.username, user.email)
-        return ResponseStatus.SUCCESS, data
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            token = RefreshToken.for_user(user)
+            data = serializer.data
+            auth_cookie = {
+                "action": "set",
+                "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+                "value": str(token.access_token),
+                "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            }
+            refresh_cookie = {
+                "action": "set",
+                "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+                "value": str(token),
+                "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            }
+            data["cookies"] = [auth_cookie, refresh_cookie]
+            send_register_email_task.delay_on_commit(user.username, user.email)
+            return ResponseStatus.SUCCESS, data
+        except Exception as e:
+            if hasattr(e, "detail"):
+                errors = e.detail
+                error_message = ""
+                if isinstance(errors, list):
+                    errors = {"error": errors[0]}
+                elif isinstance(errors, dict):
+                    for key, value in errors.items():
+                        if isinstance(value, list) and value:
+                            if error_message:
+                                error_message += " "
+                            error_message += f"{value[0].replace('This field', key)}"
+                return ResponseStatus.BAD_REQUEST, {"error": error_message}
+            return ResponseStatus.BAD_REQUEST, {"error": str(e)}
 
 
 class LoginView(BaseAPIView):
@@ -60,32 +75,47 @@ class LoginView(BaseAPIView):
     serializer_class = UserLoginSerializer
 
     def post_request(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        serializer = UserLoginSerializer(user)
-        token = RefreshToken.for_user(user)
-        data = serializer.data
-        auth_cookie = {
-            "action": "set",
-            "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
-            "value": str(token.access_token),
-            "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-        }
-        refresh_cookie = {
-            "action": "set",
-            "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
-            "value": str(token),
-            "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-            "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-        }
-        data["cookies"] = [auth_cookie, refresh_cookie]
-        return ResponseStatus.SUCCESS, data
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data
+            serializer = UserLoginSerializer(user)
+            token = RefreshToken.for_user(user)
+            data = serializer.data
+            auth_cookie = {
+                "action": "set",
+                "key": settings.SIMPLE_JWT["AUTH_COOKIE"],
+                "value": str(token.access_token),
+                "expires": settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            }
+            refresh_cookie = {
+                "action": "set",
+                "key": settings.SIMPLE_JWT["AUTH_COOKIE"] + "_refresh",
+                "value": str(token),
+                "expires": settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                "secure": settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                "httponly": settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                "samesite": settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            }
+            data["cookies"] = [auth_cookie, refresh_cookie]
+            return ResponseStatus.SUCCESS, data
+        except Exception as e:
+            if hasattr(e, "detail"):
+                errors = e.detail
+                error_message = ""
+                if isinstance(errors, list):
+                    errors = {"error": errors[0]}
+                elif isinstance(errors, dict):
+                    for key, value in errors.items():
+                        if isinstance(value, list) and value:
+                            if error_message:
+                                error_message += " "
+                            error_message += f"{value[0].replace('This field', key)}"
+                return ResponseStatus.BAD_REQUEST, {"error": error_message}
+            return ResponseStatus.BAD_REQUEST, {"error": str(e)}
 
 
 class UserDetailView(BaseAPIView):

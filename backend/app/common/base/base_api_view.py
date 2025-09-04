@@ -41,19 +41,28 @@ class BaseAPIView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         start = datetime.now()
-        response_status, content = self.get_request(request, *args, **kwargs)
+        try:
+            response_status, content = self.get_request(request, *args, **kwargs)
+        except Exception as e:
+            response_status, content = ResponseStatus.BAD_REQUEST, {"error": str(e)}
         duration = (datetime.now() - start).total_seconds() * 1000
         return get_status_to_response(response_status, content, duration)
 
     def delete(self, request, *args, **kwargs):
         start = datetime.now()
-        response_status, content = self.delete_request(request, *args, **kwargs)
+        try:
+            response_status, content = self.delete_request(request, *args, **kwargs)
+        except Exception as e:
+            response_status, content = ResponseStatus.BAD_REQUEST, {"error": str(e)}
         duration = (datetime.now() - start).total_seconds() * 1000
         return get_status_to_response(response_status, content, duration)
 
     def post(self, request, *args, **kwargs):
         start = datetime.now()
-        response_status, content = self.post_request(request, *args, **kwargs)
+        try:
+            response_status, content = self.post_request(request, *args, **kwargs)
+        except Exception as e:
+            response_status, content = ResponseStatus.BAD_REQUEST, {"error": str(e)}
         cookies = []
         if "cookies" in content:
             cookies = content.pop("cookies", [])
@@ -67,7 +76,10 @@ class BaseAPIView(generics.GenericAPIView):
 
     def put(self, request, *args, **kwargs):
         start = datetime.now()
-        response_status, content = self.put_request(request, *args, **kwargs)
+        try:
+            response_status, content = self.put_request(request, *args, **kwargs)
+        except Exception as e:
+            response_status, content = ResponseStatus.BAD_REQUEST, {"error": str(e)}
         duration = (datetime.now() - start).total_seconds() * 1000
         return get_status_to_response(response_status, content, duration)
 
