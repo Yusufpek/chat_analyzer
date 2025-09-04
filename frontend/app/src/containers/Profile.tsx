@@ -14,6 +14,7 @@ import {
 import { FiUser, FiMail } from 'react-icons/fi';
 import { useStore } from '@store/index';
 import { useNavigate } from 'react-router-dom';
+import { generateInitials } from '../utils/utils';
 
 const Profile = () => {
   const user = useStore((s: any) => s.user);
@@ -22,9 +23,7 @@ const Profile = () => {
   const firstName = (user?.first_name || '').trim();
   const lastName = (user?.last_name || '').trim();
   const fullName = (firstName || lastName) ? `${firstName}${firstName && lastName ? ' ' : ''}${lastName}` : (user?.username || 'User');
-  const initials = (firstName || lastName)
-    ? `${firstName.charAt(0) || ''}${lastName.charAt(0) || ''}`.toUpperCase()
-    : (user?.username ? user.username.slice(0, 2).toUpperCase() : 'U');
+  const initials = generateInitials(firstName, lastName, user?.username);
 
   return (
     <Box 

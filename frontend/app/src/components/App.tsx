@@ -1,15 +1,19 @@
 import React, { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from '@components/Header';
 import { Footer } from '@components/Footer';
 import { Provider } from "../components/ui/provider"
 import getRoutes from '@constants/routes';
 import { useStore } from '@store/index';
+import { Spinner } from '@chakra-ui/react';
 
 
 
 export default function App() {
   const bootstrapAuth = useStore((s: any) => s.bootstrapAuth);
+  const authInitialized = useStore((s: any) => s.authInitialized);
+  const authStatus = useStore((s: any) => s.authStatus);
+  const location = useLocation();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -21,6 +25,12 @@ export default function App() {
     };
     initAuth();
   }, [bootstrapAuth]);
+
+  
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [location.pathname]);
+  
   return (
     <Provider>
     <div style={{
@@ -28,21 +38,38 @@ export default function App() {
       flexDirection: 'column',
       minHeight: '100vh'
     }}>
-      <Header />
-        <main style={{ flex: 1, paddingBottom: '20px'}}>
-          <Routes>
-            {getRoutes().map(route => {
-              return (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={<route.component/>}
-                />
-              )
-            })}
-          </Routes>
-        </main>
-      <Footer />
+      {!authInitialized || authStatus === 'loading' ? (
+        <div style={{
+          display: 'flex',
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '32px'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <Spinner size='lg' color='blue.500' />
+            <div style={{ color: '#64748b', fontSize: 14 }}>Loading app…</div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <Header />
+            <main style={{ flex: 1, paddingBottom: '20px'}}>
+              <Routes>
+                {getRoutes().map(route => {
+                  return (
+                    <Route
+                      key={route.path}
+                      path={route.path}
+                      element={<route.component/>}
+                    />
+                  )
+                })}
+              </Routes>
+            </main>
+          <Footer />
+        </>
+      )}
     </div>
     </Provider>
   );

@@ -13,6 +13,7 @@
     "paths": {
       "@components/*": ["components/*"],
       "@containers/*": ["containers/*"],
+      "@Modals/*": ["containers/Modals/*"],
       "@modules/*": ["modules/*"],
       "@store/*": ["store/*"],
       "@constants/*": ["constants/*"],

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { 
   Box, 
   Button, 
-  Flex, 
   Text, 
   VStack, 
   HStack,
@@ -10,11 +9,13 @@ import {
   Spinner,
   Avatar,
 } from "@chakra-ui/react";
+import GenericModal from '@components/ui/Modal';
 import { LuUpload } from "react-icons/lu";
 import { request } from "@api/requestLayer";
 import { useStore } from "@store/index";
 import { useNavigate } from "react-router-dom";
 import { routePaths } from "@constants/routePaths";
+import { CONNECTION_TYPES } from "@constants/connectionTypes";
 
 // Type definitions
 interface AvatarTemplate {
@@ -23,7 +24,6 @@ interface AvatarTemplate {
   image: string;
 }
 
-// Avatar templates from public/avatars folder
 const avatarTemplates: AvatarTemplate[] = [
   { id: 1, name: "Bot 1", image: "/avatars/bottts-1755467308615.png" },
   { id: 2, name: "Bot 2", image: "/avatars/bottts-1755467311500.png" },
@@ -69,10 +69,10 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
   const [isLoading, setIsLoading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   
-  // Get fetchAgents from store
+  
   const fetchAgents = useStore((s: any) => s.fetchAgents);
+  const fetchAgentsForConnection = useStore((s: any) => s.fetchAgentsForConnection);
 
-  // When opened with a preselected file, skip upload step
   useEffect(() => {
     if (isOpen) {
       if (initialFile) {
@@ -82,7 +82,6 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
         setUploadedFile(null);
         setCurrentStep(0);
       }
-      // Ensure a random avatar is preselected when the modal opens
       setSelectedAvatar(getRandomAvatarTemplate());
     }
   }, [isOpen, initialFile]);
@@ -158,57 +157,55 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
         setUploadError(null);
         
         try {
-          // Create FormData for file upload
+          
           const formData = new FormData();
           formData.append('agent_name', conversationName);
           formData.append('agent_avatar_url', selectedAvatar.image);
           formData.append('file', uploadedFile);
 
-          console.log('Uploading conversation:', {
-            agent_name: conversationName,
-            agent_avatar_url: selectedAvatar.image,
-            file_name: uploadedFile.name,
-            file_size: uploadedFile.size
-          });
-
-          // Make API call to upload conversation
-          const response = await request('/api/connection/file-source/', {
+          const response = await request('/api/file/connection/', {
             method: 'POST',
             body: formData,
           });
 
-          console.log('Upload successful:', response);
           const createdAgentId = String(response?.content?.id || response?.id || '');
           if (!createdAgentId) {
             throw new Error('Agent ID missing in response');
           }
           
-          // Refresh agents list after successful upload
+          
           try {
             await fetchAgents();
           } catch (error) {
             console.error('Failed to refresh agents:', error);
           }
+
           
-          // Navigate to analyze/{agentId}
+          try {
+            await fetchAgentsForConnection(CONNECTION_TYPES.FILE);
+          } catch (error) {
+            console.error('Failed to refresh agents for connection:', error);
+          }
+
+
           try {
             routerNavigate(routePaths.analyzeMain(createdAgentId));
           } catch (navError) {
             console.error('Navigation failed:', navError);
           }
           
-          // Call onFinish callback if provided
+          
           if (onFinish) {
             onFinish();
           }
           
-          // Close modal after successful upload
+          
           handleClose();
           
         } catch (error: any) {
           console.error('Upload failed:', error);
           setUploadError(error.message || 'Failed to upload conversation');
-          // Go back to previous step on error
+          
           setCurrentStep(2);
         } finally {
           setIsLoading(false);
@@ -413,119 +410,84 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
   };
 
   return (
-    <Box
-      position="fixed"
-      top={0}
-      left={0}
-      right={0}
-      bottom={0}
-      bg="rgba(0, 0, 0, 0.5)"
-      zIndex={1000}
-      display={isOpen ? "flex" : "none"}
-      alignItems="center"
-      justifyContent="center"
-      onClick={handleClose}
+    <GenericModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Add New Agent Conversation"
+      maxW="2xl"
     >
-      <Box
-        bg="white"
-        borderRadius="xl"
-        p={8}
-        maxW="2xl"
-        w="90%"
-        maxH="90vh"
-        overflowY="auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Flex justifyContent="space-between" alignItems="center" mb={6}>
-          <Text fontSize="2xl" fontWeight="bold" color="#0A0807">
-            Add New Agent Conversation
-          </Text>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
+      <HStack gap={4} mb={8} justifyContent="center">
+        {steps.map((step, index) => (
+          <HStack key={index} gap={2}>
+            <Box
+              w="8"
+              h="8"
+              borderRadius="full"
+              bg={index <= currentStep ? "#D200D3" : "#615568"}
+              color="white"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              fontSize="sm"
+              fontWeight="bold"
+            >
+              {index + 1}
+            </Box>
+            <Text
+              fontSize="sm"
+              color={index <= currentStep ? "#0A0807" : "#615568"}
+              fontWeight={index === currentStep ? "bold" : "normal"}
+            >
+              {step.title}
+            </Text>
+          </HStack>
+        ))}
+      </HStack>
+
+      {renderStepContent()}
+
+      <HStack mt={8} gap={4} justifyContent="center">
+        {currentStep > 0 && (
+          <Button 
+            variant="outline" 
+            onClick={handlePrev}
+            borderColor="#615568"
             color="#615568"
-            _hover={{ color: "#D200D3" }}
+            _hover={{ borderColor: "#D200D3", color: "#D200D3" }}
           >
-            ✕
+            Previous
           </Button>
-        </Flex>
-        
-        {/* Steps Indicator */}
-        <HStack gap={4} mb={8} justifyContent="center">
-          {steps.map((step, index) => (
-            <HStack key={index} gap={2}>
-              <Box
-                w="8"
-                h="8"
-                borderRadius="full"
-                bg={index <= currentStep ? "#D200D3" : "#615568"}
-                color="white"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                fontSize="sm"
-                fontWeight="bold"
-              >
-                {index + 1}
-              </Box>
-              <Text
-                fontSize="sm"
-                color={index <= currentStep ? "#0A0807" : "#615568"}
-                fontWeight={index === currentStep ? "bold" : "normal"}
-              >
-                {step.title}
-              </Text>
-            </HStack>
-          ))}
-        </HStack>
-        
-        {renderStepContent()}
-        
-        <HStack mt={8} gap={4} justifyContent="center">
-          {currentStep > 0 && (
-            <Button 
-              variant="outline" 
-              onClick={handlePrev}
-              borderColor="#615568"
-              color="#615568"
-              _hover={{ borderColor: "#D200D3", color: "#D200D3" }}
-            >
-              Previous
-            </Button>
-          )}
-          {currentStep < steps.length - 1 && (
-            <Button 
-              onClick={handleNext} 
-              bg="#D200D3"
-              color="white"
-              _hover={{ bg: "#B6ED43", color: "#0A0807" }}
-              disabled={isLoading || (currentStep === 0 && !uploadedFile) || (currentStep === 1 && !conversationName.trim()) || (currentStep === 2 && !selectedAvatar)}
-            >
-              {isLoading ? <Spinner size="sm" /> : "Next"}
-            </Button>
-          )}
-          {currentStep === steps.length - 1 && (
-            <Button 
-              onClick={handleClose} 
-              bg="#D200D3"
-              color="white"
-              _hover={{ bg: "#B6ED43", color: "#0A0807" }}
-              disabled={isLoading}
-            >
-              {isLoading ? <Spinner size="sm" /> : "Finish"}
-            </Button>
-          )}
-        </HStack>
-        
-        {/* Error message display */}
-        {uploadError && currentStep !== 3 && (
-          <Text fontSize="sm" color="red.500" textAlign="center" mt={4}>
-            {uploadError}
-          </Text>
         )}
-      </Box>
-    </Box>
+        {currentStep < steps.length - 1 && (
+          <Button 
+            onClick={handleNext} 
+            bg="#D200D3"
+            color="white"
+            _hover={{ bg: "#B6ED43", color: "#0A0807" }}
+            disabled={isLoading || (currentStep === 0 && !uploadedFile) || (currentStep === 1 && !conversationName.trim()) || (currentStep === 2 && !selectedAvatar)}
+          >
+            {isLoading ? <Spinner size="sm" /> : "Next"}
+          </Button>
+        )}
+        {currentStep === steps.length - 1 && (
+          <Button 
+            onClick={handleClose} 
+            bg="#D200D3"
+            color="white"
+            _hover={{ bg: "#B6ED43", color: "#0A0807" }}
+            disabled={isLoading}
+          >
+            {isLoading ? <Spinner size="sm" /> : "Finish"}
+          </Button>
+        )}
+      </HStack>
+
+      {uploadError && currentStep !== 3 && (
+        <Text fontSize="sm" color="red.500" textAlign="center" mt={4}>
+          {uploadError}
+        </Text>
+      )}
+    </GenericModal>
   );
 };
 

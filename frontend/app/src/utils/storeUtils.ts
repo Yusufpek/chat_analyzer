@@ -1,5 +1,3 @@
-// Common utility functions for store slices
-
 export const mergeEntitiesById = <T extends { id: string | number }>(
   current: T[],
   newItems: T[]

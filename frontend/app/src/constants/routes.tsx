@@ -6,7 +6,6 @@ import Landing from '../containers/Landing';
 import AboutUs from '../containers/AboutUs';
 import Profile from '../containers/Profile';
 import Analyze from '../containers/Analyze/Analyze';
-// AnalyzeMain is now rendered inside Analyze wrapper
 
 const getRoutes = () => [
   {

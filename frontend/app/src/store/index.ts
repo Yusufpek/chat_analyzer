@@ -38,7 +38,7 @@ export const useConversations = (agentId?: string) => useStore((state) => ({
     conversations: agentId ? state.getConversationsForAgent(agentId) : [],
     isLoadingConversations: state.isLoadingConversations,
     conversationsError: state.conversationsError,
-    fetchConversationsIfNeeded: state.fetchConversationsIfNeeded,
+    fetchConversations: state.fetchConversations,
     refreshConversations: state.refreshConversations,
     clearConversationsForAgent: state.clearConversationsForAgent,
 }));

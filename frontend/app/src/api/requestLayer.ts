@@ -2,7 +2,6 @@ interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
 }
 
-// Prefer env-configured base URL, fallback to localhost
 const API_BASE_URL =
   (typeof window !== 'undefined' && (window as any)?.ENV?.API_BASE_URL) ||
   (typeof process !== 'undefined' && (process as any)?.env?.API_BASE_URL) ||
@@ -18,7 +17,6 @@ function buildUrl(url: string): string {
 export async function request(url: string, options: RequestInit = {}): Promise<any> {
   const fullUrl = buildUrl(url);
   
-  // Prepare headers - don't set Content-Type for FormData
   const headers: Record<string, string> = {};
   
   // Only set Content-Type if it's not FormData and not already provided

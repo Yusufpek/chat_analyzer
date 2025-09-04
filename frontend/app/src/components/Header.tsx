@@ -9,6 +9,10 @@ import {
   Avatar,
   Menu,
   Portal,
+  HStack,
+  Stack,
+  Skeleton,
+  SkeletonCircle,
 } from '@chakra-ui/react';
 
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
@@ -17,11 +21,15 @@ import { CONNECTION_TYPES, CONNECTION_TYPE_LABELS } from '@constants/connectionT
 
 export const Header = () => {
   const isUserLoggedIn = useStore((s: any) => s.authStatus === 'authenticated');
+  const authStatus = useStore((s: any) => s.authStatus);
+  const authInitialized = useStore((s: any) => s.authInitialized);
+  const isLoadingLogin = useStore((s: any) => s.isLoadingLogin);
   const user = useStore((s: any) => s.user);
   const setSelectedConnectionType = useStore((s: any) => s.setSelectedConnectionType);
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const showAuthSkeleton = authStatus === 'loading' || !authInitialized || isLoadingLogin;
   
   
   const textColor = '#0A0807';
@@ -83,7 +91,7 @@ export const Header = () => {
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => setIsMenuOpen(false)} // Close mobile menu when link is clicked
+          onClick={() => setIsMenuOpen(false)}
         >
           {children}
         </RouterLink>
@@ -162,28 +170,6 @@ export const Header = () => {
                   onClick={() => { setSelectedConnectionType(CONNECTION_TYPES.JOTFORM); navigate('/analyze'); setIsMenuOpen(false); }}
                 >
                   {CONNECTION_TYPE_LABELS[CONNECTION_TYPES.JOTFORM]}
-                </Menu.Item>
-                <Menu.Item
-                  value={CONNECTION_TYPES.CHATGPT}
-                  style={{
-                    color: textColor,
-                    fontSize: '1rem',
-                    fontWeight: 450,
-                    padding: '0.75rem 1rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                  }}
-                  _hover={{
-                    bg: '#FFF6FF',
-                    color: hoverColor,
-                  }}
-                  _focus={{
-                    bg: '#FFF6FF',
-                    color: hoverColor,
-                  }}
-                  onClick={() => { setSelectedConnectionType(CONNECTION_TYPES.CHATGPT); navigate('/analyze'); setIsMenuOpen(false); }}
-                >
-                  {CONNECTION_TYPE_LABELS[CONNECTION_TYPES.CHATGPT]}
                 </Menu.Item>
                 <Menu.Item
                   value={CONNECTION_TYPES.FILE}
@@ -325,14 +311,21 @@ export const Header = () => {
           <Flex gap={8} align="center">
             {/* Desktop Navigation */}
             <Flex gap={1} display={{ base: 'none', md: 'flex' }} alignItems="center">
-              <NavLink to="/">Home</NavLink>
               <NavLink to="/about">About Us</NavLink>
               <NavLink to="https://form.jotform.com/252263897399981" isExternal>Contact Us</NavLink>
               <AnalyzeDropdown />
             </Flex>
 
             {/* User Avatar or Login Button */}
-            {isUserLoggedIn ? (
+            {showAuthSkeleton ? (
+              <HStack gap="5" display={{ base: 'none', md: 'flex' }}>
+                <SkeletonCircle size="12" />
+                <Stack flex="1">
+                  <Skeleton height="5" />
+                  <Skeleton height="5" width="80%" />
+                </Stack>
+              </HStack>
+            ) : isUserLoggedIn ? (
               <RouterLink to="/profile" style={{ textDecoration: 'none' }}>
                 <Box
                   cursor="pointer"
@@ -423,7 +416,17 @@ export const Header = () => {
             <MobileNavLink to="/analyze">Analyze</MobileNavLink>
             
             {/* Mobile Login Button */}
-            {!isUserLoggedIn && (
+            {showAuthSkeleton ? (
+              <Box p={4} borderTop="1px solid #D3D3D3">
+                <HStack gap="5">
+                  <SkeletonCircle size="12" />
+                  <Stack flex="1">
+                    <Skeleton height="5" />
+                    <Skeleton height="5" width="80%" />
+                  </Stack>
+                </HStack>
+              </Box>
+            ) : !isUserLoggedIn && (
               <Box p={4} borderTop="1px solid #D3D3D3">
                 <RouterLink to="/login" onClick={() => setIsMenuOpen(false)} style={{ textDecoration: 'none' }}>
                   <Button

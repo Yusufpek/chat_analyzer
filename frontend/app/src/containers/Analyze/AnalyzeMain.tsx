@@ -7,9 +7,9 @@ import AnalyzeStatistics from './AnalyzeStatistics';
 import AnalyzeSentiment from './AnalyzeSentiment';
 import AnalyzeSettings from './AnalyzeSettings';
 
-// Removed sidebar and mock agents; this component now only renders tabbed content
 
 const AnalyzeMain = () => {
+  // TODO path shorten
   const { agentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,7 +21,7 @@ const AnalyzeMain = () => {
     if (location.pathname.includes('/statistics')) return 'statistics';
     if (location.pathname.includes('/sentiment')) return 'sentiment';
     if (location.pathname.includes('/settings')) return 'settings';
-    return 'dashboard'; // default to dashboard
+    return 'dashboard';
   };
 
   const handleTabChange = (details: { value: string }) => {
@@ -45,7 +45,7 @@ const AnalyzeMain = () => {
   };
 
   return (
-    <Box position="relative" bg="#000000" width="full" minH="100%">
+    <Box position="relative" bg="#FFF6FF" width="full" minH="100%">
       <Tabs.Root 
         defaultValue={getActiveTab()}
         onValueChange={handleTabChange}

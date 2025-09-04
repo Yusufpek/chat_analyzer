@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Box, VStack, HStack, Text, Avatar } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
-import { useStore } from '@store/index';
+import { useStore } from '@store/index';  
 
 const ConversationMessages = () => {
   const { agentId, convID } = useParams();
