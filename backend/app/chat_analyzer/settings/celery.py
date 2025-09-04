@@ -12,7 +12,6 @@ INSTALLED_APPS += [
 
 CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672//"
 CELERY_RESULT_BACKEND = "rpc://"
-
 CELERY_BEAT_SCHEDULE = {
     "get_sentimental_analysis": {
         "task": "analyze.tasks.ai_tasks.get_sentimental_analysis_task",
@@ -25,5 +24,13 @@ CELERY_BEAT_SCHEDULE = {
     "label_conversations": {
         "task": "analyze.tasks.ai_tasks.label_conversations_task",
         "schedule": crontab(minute="*/20"),
+    },
+    "conversations_to_qdrant": {
+        "task": "analyze.tasks.qdrant_tasks.conversations_to_qdrant_task",
+        "schedule": crontab(minute=0),  # runs every hour at minute 0
+    },
+    "group_messages": {
+        "task": "analyze.tasks.qdrant_tasks.group_messages_task",
+        "schedule": crontab(hour="*/1", minute="*/30"),
     },
 }
