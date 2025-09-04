@@ -37,12 +37,13 @@ export interface AgentsSliceState {
 	fetchAgents: (connection_type?: string) => Promise<void>;
 	clearAgents: () => void;
 	deleteAgent: (agentId: string) => Promise<void>;
+	
 	// Jotform specific functions
 	fetchJotformAgents: () => Promise<JotformAgentsResponse | null>;
 	syncJotformAgents: (agents: JotformAgent[]) => Promise<void>;
 }
 
-// Zustand store types
+
 type SetState = (partial: Partial<AgentsSliceState> | ((state: AgentsSliceState) => Partial<AgentsSliceState>)) => void;
 type GetState = () => AgentsSliceState;
 
@@ -109,13 +110,14 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 	setIsLoadingAgents: (isLoading: boolean) => set({ isLoadingAgents: isLoading }),
 	agentsError: null,
 	setAgentsError: (error: string | null) => set({ agentsError: error }),
+	
 	fetchAgents: async (connection_type?: string) => {
 		// Do not fetch if user is not authenticated
 		const stateAny = get() as any;
-		if (stateAny?.authStatus !== "authenticated") return;
+		if (stateAny?.authStatus !== "authenticated") return [];
 
 		const { isLoadingAgents } = get();
-		if (isLoadingAgents) return;
+		if (isLoadingAgents) return [];
 
 		set({ isLoadingAgents: true, agentsError: null });
 		try {
@@ -128,11 +130,14 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 			if (connection_type) {
 				get().setAgentsForConnection(connection_type, content);
 			}
+			return content;
 		} catch (error: any) {
 			const errorMessage = error?.message || "Failed to load agents";
 			set({ agentsError: errorMessage, isLoadingAgents: false });
+			return [];
 		}
 	},
+	
 	fetchAgentsForConnection: async (connectionType: string) => {
 		// Do not fetch if user is not authenticated
 		const stateAny = get() as any;
@@ -140,7 +145,7 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 
 		// If cached, do nothing
 		const cached = get().getAgentsForConnection(connectionType);
-		if (cached && cached.length > 0) return;
+		if (cached && cached.length > 0) return ;
 
 		const { isLoadingAgents } = get();
 		if (isLoadingAgents) return;
@@ -156,6 +161,7 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 			set({ agentsError: errorMessage, isLoadingAgents: false });
 		}
 	},
+	
 	fetchJotformAgents: async () => {
 		try {
 			const response = await request('/api/jotform/agents/', { method: 'GET' });
@@ -169,6 +175,7 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 			throw error;
 		}
 	},
+	
 	syncJotformAgents: async (agents: JotformAgent[]) => {
 		try {
 			const payload = {

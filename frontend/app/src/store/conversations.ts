@@ -8,7 +8,8 @@ export interface ConversationItem {
 	status: string;
 	agent_id: string;
 	last_message: string | null;
-	assistant_avatar_url?: string | null; // Added missing field from API
+	assistant_avatar_url?: string | null;
+	label?: string | null;
 }
 
 export interface ConversationsSliceState {
@@ -20,7 +21,7 @@ export interface ConversationsSliceState {
 	clearConversationsForAgent: (agentId: string) => void;
 	clearAllConversations: () => void;
 	getConversationsForAgent: (agentId: string) => ConversationItem[];
-	fetchConversationsIfNeeded: (agentId: string) => Promise<void>;
+	fetchConversations: (agentId: string) => Promise<void>;
 	refreshConversations: (agentId: string) => Promise<void>;
 }
 
@@ -73,7 +74,7 @@ export const createConversationsSlice = (set: SetState, get: GetState): Conversa
 		if (!agentId) return [];
 		return get().conversationsByAgent?.[agentId] || [];
 	},
-	fetchConversationsIfNeeded: async (agentId: string) => {
+	fetchConversations: async (agentId: string) => {
 		if (!agentId) return;
 		const { isLoadingConversations } = get();
 		if (isLoadingConversations) return;

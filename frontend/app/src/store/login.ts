@@ -31,7 +31,6 @@ export interface LoginSliceState {
     logout: () => Promise<void>;
 }
 
-// Zustand store types
 type SetState = (partial: Partial<LoginSliceState> | ((state: LoginSliceState) => Partial<LoginSliceState>)) => void;
 type GetState = () => LoginSliceState;
 
@@ -39,7 +38,7 @@ export const createLoginSlice = (set: SetState, get: GetState): LoginSliceState 
     user: null,
     setUser: (user: User | null) => set({ user }),
 
-    // Simplified auth state
+    // Auth state
     authStatus: 'idle',
     authInitialized: false,
 
@@ -58,6 +57,7 @@ export const createLoginSlice = (set: SetState, get: GetState): LoginSliceState 
     userError: null,
     setUserError: (error: string | null) => set({ userError: error }),
 
+    
     normalizeUser: (payload: any): User | null => {
         if (!payload || typeof payload !== 'object') return null;
         
@@ -76,11 +76,11 @@ export const createLoginSlice = (set: SetState, get: GetState): LoginSliceState 
         } as User;
     },
 
-    // Single bootstrap that is idempotent
+    // Single bootstrap
     bootstrapAuth: async (): Promise<void> => {
         const { authStatus } = get();
         if (authStatus === 'loading') return;
-
+        // TODO: ADD ESLINT FOR EMPTY LINES AND EXTENSION FOR AUTOFIX
         set({ authStatus: 'loading', userError: null });
         try {
 
@@ -168,7 +168,7 @@ export const createLoginSlice = (set: SetState, get: GetState): LoginSliceState 
         try {
             await request('/api/auth/logout/', { method: 'POST' });
         } catch (_) {
-            // ignore errors
+            // 
         }
         set({ 
             user: null, 
@@ -188,7 +188,7 @@ export const createLoginSlice = (set: SetState, get: GetState): LoginSliceState 
             if (typeof stateAny.clearAllConversations === 'function') stateAny.clearAllConversations();
             if (typeof stateAny.clearAllMessages === 'function') stateAny.clearAllMessages();
         } catch (_) {
-            // best-effort; ignore
+            // 
         }
     },
 });

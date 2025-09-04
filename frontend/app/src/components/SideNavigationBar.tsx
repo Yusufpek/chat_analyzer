@@ -8,11 +8,12 @@ import {
   Text,
   useDisclosure,
   Menu,
-  Portal
+  Portal,
+  Spinner
 } from "@chakra-ui/react";
 import { useStore } from '@store/index';
-import AddAgentModal from './AddAgentModal';
-import ManageAgentsModal from './ManageAgentsModal';
+import AddAgentModal from '@Modals/AddAgentModal';
+import ManageAgentsModal from '@Modals/ManageAgentsModal';
 import { CONNECTION_TYPE_LABELS, CONNECTION_TYPES, ConnectionType } from '@constants/connectionTypes';
 
 interface SideNavigationBarProps {
@@ -20,7 +21,6 @@ interface SideNavigationBarProps {
   onAddConversation?: () => void;
 }
 
-// Connection type emojis
 const CONNECTION_TYPE_EMOJIS: Record<ConnectionType, string> = {
   [CONNECTION_TYPES.JOTFORM]: '/jotform.png',
   [CONNECTION_TYPES.CHATGPT]: '/gpt.png',
@@ -35,7 +35,11 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
   const [isNavClose, setIsNavClose] = useState(false);
   const selectedConnectionType = useStore((s: any) => s.selectedConnectionType) as ConnectionType;
   const setSelectedConnectionType = useStore((s: any) => s.setSelectedConnectionType);
-  const { open, onOpen, onClose } = useDisclosure();
+  const { 
+    open: isAddAgentOpen, 
+    onOpen: onOpenAddAgent, 
+    onClose: onCloseAddAgent 
+  } = useDisclosure();
   const { 
     open: isManageAgentsOpen, 
     onOpen: onManageAgentsOpen, 
@@ -45,29 +49,29 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
   const getAgentsForConnection = useStore((s: any) => s.getAgentsForConnection);
   const fetchAgentsForConnection = useStore((s: any) => s.fetchAgentsForConnection);
   const authStatus = useStore((s: any) => s.authStatus);
+  const authInitialized = useStore((s: any) => s.authInitialized);
+  const isLoadingAgents = useStore((s: any) => s.isLoadingAgents);
 
   const handleAddAgent = () => {
-    if (authStatus !== 'authenticated') {
+    if (!authInitialized || authStatus !== 'authenticated') {
       navigate('/login');
       return;
     }
-
     if (onAddConversation) {
       onAddConversation();
     } else {
-      onOpen();
+      onOpenAddAgent();
     }
   };
 
   useEffect(() => {
-    if (authStatus !== 'authenticated') return;
+    if (!authInitialized || authStatus !== 'authenticated') return;
     const cached = getAgentsForConnection(selectedConnectionType);
     if (!cached || cached.length === 0) {
       fetchAgentsForConnection(selectedConnectionType);
     }
-  }, [selectedConnectionType, authStatus, getAgentsForConnection, fetchAgentsForConnection]);
+  }, [selectedConnectionType, authStatus, authInitialized, getAgentsForConnection]);
 
-  // Agents for the selected connection type (from cache/store)
   const filteredAgents = getAgentsForConnection(selectedConnectionType) || [];
 
   return (
@@ -157,7 +161,7 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
                       border="2px solid #0A0807"
                       borderRadius="md"
                       boxShadow="0 4px 8px rgba(0, 0, 0, 0.15)"
-                      minW="200px"
+                      w="245px"
                       py={1}
                     >
                       {Object.entries(CONNECTION_TYPE_LABELS).map(([key, label]) => (
@@ -205,7 +209,12 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
 
             {/* Agent List */}
             <VStack gap={3} align="stretch">
-              {filteredAgents.map((agent: any) => (
+              {isLoadingAgents ? (
+                <Box p={2} textAlign="center">
+                  <Spinner size="md" color="#000000"/>
+                </Box>
+              ) : (
+                filteredAgents.map((agent: any) => (
                 <HStack
                   key={agent.id}
                   gap={3}
@@ -267,7 +276,8 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
                     </VStack>
                   )}
                 </HStack>
-              ))}
+              ))
+              )}
             </VStack>
 
             {/* Add Agent Button */}
@@ -320,10 +330,9 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
                 </Text>
               )}
             </Button>
-          </VStack>
 
-          {/* Settings/Manage Agents Button */}
-          <Button
+            {/* Settings/Manage Agents Button */}
+            <Button
             bg="#615568"
             color="white"
             size="sm"
@@ -334,8 +343,8 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
             w="100%"
             borderRadius="full"
             _hover={{
-              bg: "#D200D3",
-              color: "white",
+              bg: "#B6ED43",
+              color: "black",
               transform: "scale(1.05)",
               boxShadow: "0 4px 12px rgba(210, 0, 211, 0.3)"
             }}
@@ -344,7 +353,7 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
             }}
             transition="all 0.2s ease"
             h="40px"
-          >
+            >
             <Box
               w="24px"
               h="24px"
@@ -372,12 +381,13 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
                 Manage Agents
               </Text>
             )}
-          </Button>
+            </Button>
+          </VStack>
         </VStack>
       </Box>
       
-      {/* Add Conversation Modal */}
-      <AddAgentModal isOpen={open} onClose={onClose} />
+      {/* Add Agent Modal */}
+      <AddAgentModal isOpen={isAddAgentOpen} onClose={onCloseAddAgent} />
       
       {/* Manage Agents Modal */}
       <ManageAgentsModal isOpen={isManageAgentsOpen} onClose={onManageAgentsClose} />

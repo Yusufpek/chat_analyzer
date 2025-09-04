@@ -6,9 +6,13 @@ import {
   VStack,
   HStack,
   Text,
+  Button,
+  Circle,
+  Badge,
 } from '@chakra-ui/react';
 import { useStore } from '@store/index';
 import ConversationMessages from './ConversationMessages';
+import AddLabelModal from '@Modals/AddLabelModal';
 
 type Conversation = {
   id: string;
@@ -25,18 +29,18 @@ const AnalyzeConversations= () => {
   const navigate = useNavigate();
   const { agentId, convID } = useParams();
   const agents = useStore((s: any) => s.agents);
-
-  
-  // Zustand store hooks
+  const agent = useMemo(() => agents?.find((a: any) => a.id === agentId), [agents, agentId]);
   const conversationsByAgent = useStore((s: any) => s.conversationsByAgent);
-  const fetchConversationsIfNeeded = useStore((s: any) => s.fetchConversationsIfNeeded);
+  const fetchConversations = useStore((s: any) => s.fetchConversations);
   const isLoadingConversations = useStore((s: any) => s.isLoadingConversations);
   const conversationsFromStore: Conversation[] = (agentId && conversationsByAgent?.[agentId]) || [];
+  const [isAddLabelOpen, setIsAddLabelOpen] = React.useState(false);
 
   useEffect(() => {
     if (!agentId) return;
-    if (fetchConversationsIfNeeded) fetchConversationsIfNeeded(agentId);
-  }, [agentId, fetchConversationsIfNeeded]);
+    // TODO: if conversations are not null, dont call; add refresh button if needed
+    if (fetchConversations) fetchConversations(agentId);
+  }, [agentId, fetchConversations]);
 
   const sortedConversations = useMemo(() => {
     const list = Array.isArray(conversationsFromStore) ? conversationsFromStore : [];
@@ -49,6 +53,39 @@ const AnalyzeConversations= () => {
       <Box w="360px" className="ca-bg-light-pink ca-border-right-gray" overflowY="auto" minH="100%">
         <VStack align="stretch" gap={1} p={4}>
           <Text className="ca-color-primary" fontSize="xl" fontWeight="bold">Conversations</Text>
+          <HStack>
+            <Button
+              className="ca-color-primary ca-bg-light-gray"
+              borderRadius="full"
+              bg="#E2E8F0"
+              color="#0A0807"
+              px={4}
+              py={2}
+              border="1px solid #A0AEC0"
+              _hover={{ bg: '#CBD5E0' }}
+            >
+              All
+            </Button>
+            <Circle
+              size="36px"
+              className="ca-bg-light-gray"
+              bg="#E2E8F0"
+              color="#0A0807"
+              border="1px solid #A0AEC0"
+              _hover={{ bg: '#CBD5E0' }}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
+              onClick={() => setIsAddLabelOpen(true)}
+            >
+              +
+            </Circle>
+          </HStack>
+          <AddLabelModal
+            isOpen={isAddLabelOpen}
+            onClose={() => setIsAddLabelOpen(false)}
+          />
           {sortedConversations.map((conv) => (
             <HStack
               key={conv.id}
@@ -76,9 +113,12 @@ const AnalyzeConversations= () => {
                 <img src={agents.find((agent: any) => agent.id === conv.agent_id)?.avatar_url} style={{ width: '100%', height: '100%' }} />
               </Box>
               <VStack align="start" flex={1} minW={0} gap={1}>
-                <Text className="ca-color-primary" fontSize="sm" fontWeight="medium" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" w="100%">
-                  {conv.source} · {conv.chat_type}
-                </Text>
+                <HStack justifyContent="space-between" w="100%">
+                  <Text className="ca-color-primary" fontSize="sm" fontWeight="medium" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                    {conv.source} · {conv.chat_type}
+                  </Text>
+                  <Badge colorScheme="purple" variant="subtle">Personal</Badge>
+                </HStack>
                 <Text className="ca-color-quaternary" fontSize="xs" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" w="100%">
                   {new Date(conv.created_at).toLocaleString()}
                 </Text>

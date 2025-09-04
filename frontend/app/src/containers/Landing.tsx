@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -9,20 +9,17 @@ import {
   HStack,
   FileUpload,
 } from '@chakra-ui/react';
-import AddConversationModal from '@components/AddConversationModal';
-import JotformSignInModal from '@components/JotformSignInModal';
-import OpenAISignInModal from '@components/OpenAISignInModal';
+import AddConversationModal from '@Modals/AddConversationModal';
 import { useNavigate } from 'react-router-dom';
 import { routePaths } from '@constants/routePaths';
 import { LuUpload } from 'react-icons/lu';
 import { useStore } from '@store/index';
-
+import AddFromProductModal from '@Modals/AddFromProductModal';
 const Landing = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isJotformModalOpen, setIsJotformModalOpen] = useState(false);
-  const [isOpenAIModalOpen, setIsOpenAIModalOpen] = useState(false);
+  const [isAddFromProductModalOpen, setIsAddFromProductModalOpen] = useState(false);
   const navigate = useNavigate();
   const authStatus = useStore((s: any) => s.authStatus);
   const primaryColor = '#0A0807';
@@ -87,7 +84,7 @@ const Landing = () => {
   }, [navigate]);
 
   // Add delete buttons and click handler
-  React.useEffect(() => {
+  useEffect(() => {
     const addDeleteButtons = () => {
       const fileItems = document.querySelectorAll('[data-scope="file-upload"][data-part="item"]');
       fileItems.forEach((item) => {
@@ -267,7 +264,7 @@ const Landing = () => {
                 fontSize="md"
                 fontWeight="semibold"
                 transition="all 0.2s ease"
-                onClick={() => setIsJotformModalOpen(true)}
+                onClick={() => setIsAddFromProductModalOpen(true)}
               >
                 Add Connection
               </Button>
@@ -283,9 +280,9 @@ const Landing = () => {
       initialFile={selectedFile}
       onFinish={handleModalFinish}
     />
-    <JotformSignInModal
-      isOpen={isJotformModalOpen}
-      onClose={() => setIsJotformModalOpen(false)}
+    <AddFromProductModal
+      isOpen={isAddFromProductModalOpen}
+      onClose={() => setIsAddFromProductModalOpen(false)}
     />
     </>
   );

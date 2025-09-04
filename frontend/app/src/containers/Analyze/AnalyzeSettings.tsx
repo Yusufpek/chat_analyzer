@@ -9,11 +9,11 @@ const AnalyzeSettings = () => {
 
   const agents = useStore((s: any) => s.agents);
   const conversationsByAgent = useStore((s: any) => s.conversationsByAgent);
-  const fetchConversationsIfNeeded = useStore((s: any) => s.fetchConversationsIfNeeded);
+  const fetchConversations = useStore((s: any) => s.fetchConversations);
 
   useEffect(() => {
-    if (agentId && fetchConversationsIfNeeded) fetchConversationsIfNeeded(agentId);
-  }, [agentId, fetchConversationsIfNeeded]);
+    if (agentId && fetchConversations) fetchConversations(agentId);
+  }, [agentId, fetchConversations]);
 
   const agent = useMemo(() => agents?.find((a: any) => String(a.id) === String(agentId)), [agents, agentId]);
   const conversations = useMemo(() => (agentId ? (conversationsByAgent?.[agentId] || []) : []), [conversationsByAgent, agentId]);
