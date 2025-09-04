@@ -22,4 +22,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "analyze.tasks.ai_tasks.get_conversation_title_task",
         "schedule": crontab(minute="*/15"),
     },
+    "label_conversations": {
+        "task": "analyze.tasks.ai_tasks.label_conversations_task",
+        "schedule": crontab(minute="*/20"),
+    },
 }
