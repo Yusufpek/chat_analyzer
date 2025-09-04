@@ -28,6 +28,25 @@ def get_sentimental_analysis_task():
 
 
 @shared_task
+def get_conversation_title_task():
+    """
+    Task to perform conversation title extraction on conversations.
+    """
+
+    log = Log(task_name="Get Conversation Title", category=Log.Category.ANALYTICS)
+    log.save()
+    try:
+        management.call_command("get_conversation_title")
+    except Exception as e:
+        print(e)
+    now = datetime.now()
+    log.complete_task(
+        "Analyzed title of conversations {}".format(now.strftime("%m/%d/%Y, %H:%M"))
+    )
+    return True
+
+
+@shared_task
 def label_conversations_task(agent_id, label_all=False):
     """
     Task to label conversations for a specific agent.
