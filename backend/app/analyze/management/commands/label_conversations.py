@@ -103,6 +103,8 @@ class Command(CustomBaseCommand):
                         )
                         self.logger.info(f"Label: {label}")
                         self.logger.info(f"Details: {details}")
+                        if label not in agent.label_choices:
+                            label = "Other"
                         conversation.label = label
                         # conversation.label_details = f"{engine}: {details}"
                         conversation.save()
