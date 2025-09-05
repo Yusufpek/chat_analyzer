@@ -263,11 +263,21 @@ class AgentView(BaseAPIView):
             }
         serializer = AgentSerializer(agent, data=data, partial=True)
         if serializer.is_valid():
-            if agent.label_choices != serializer.validated_data.get("label_choices"):
+            if (
+                agent.label_choices
+                and agent.label_choices
+                != serializer.validated_data.get("label_choices")
+            ):
                 label_agent_conversations_task.delay_on_commit(
                     agent_id=agent.id,
                     label_all=True,
                 )
+
+            if (
+                "label_choices" in serializer.validated_data
+                and serializer.validated_data.get("label_choices") == []
+            ):
+                Conversation.objects.filter(agent_id=agent.id).update(label=None)
 
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
