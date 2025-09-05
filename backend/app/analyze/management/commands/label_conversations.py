@@ -103,7 +103,7 @@ class Command(CustomBaseCommand):
                         )
                         self.logger.info(f"Label: {label}")
                         self.logger.info(f"Details: {details}")
-                        conversation.label = label.upper()
+                        conversation.label = label
                         # conversation.label_details = f"{engine}: {details}"
                         conversation.save()
                         self.logger.info(
