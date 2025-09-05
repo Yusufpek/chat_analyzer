@@ -29,6 +29,7 @@ class Conversation(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     analysis_result = models.CharField(max_length=100, null=True, blank=True)
     analysis_details = models.TextField(null=True, blank=True)
+    context_analysis_done = models.BooleanField(default=False)
 
     source = models.CharField(
         max_length=255,

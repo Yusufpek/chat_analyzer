@@ -153,10 +153,19 @@ class OpenAIService(AIService):
         """
 
         response = self.send_request(prompt)
+        if "json" in response:
+            response = response.replace("json", "").replace("```", "").strip()
         parsed_response = json.loads(response)
 
-        if "topics" in parsed_response and "context_changes" in parsed_response:
-            return parsed_response["topics"], parsed_response["context_changes"]
+        if any(
+            key in parsed_response
+            for key in ["overall_context", "topics", "context_changes"]
+        ):
+            return (
+                parsed_response["overall_context"],
+                parsed_response["topics"],
+                parsed_response["context_changes"],
+            )
 
         raise ValueError(
             "Unexpected response format from OpenAI API for label analysis."
