@@ -46,7 +46,8 @@ class Command(CustomBaseCommand):
             return
 
         agents = Agent.objects.filter(label_choices__isnull=False).distinct()
-        print(agents)
+        agents = [agent for agent in agents if agent.label_choices]
+
         if not agents:
             self.logger.error("No agents found with label choices.")
             return
