@@ -16,8 +16,8 @@ class Command(CustomBaseCommand):
         parser.add_argument(
             "--engine",
             type=str,
-            default=EngineType.OPENAI.value,
-            help="The AI service engine to test (default: openai).",
+            default=EngineType.ANTHROPIC_CLAUDE.value,
+            help="The AI service engine to test (default: claude).",
         )
 
     def process(self, *args, **options):
