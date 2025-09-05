@@ -54,17 +54,17 @@ class ClaudeService(AIService):
                 "No conversation messages provided for sentiment analysis."
             )
 
-        prompt = (
-            "Here is a conversation between an AI assistant and a user. "
-            "Analyze the sentiment of the user's messages and provide a summary of their emotional state. "
-            "Focus only on the user's messages.\n\n"
-            f"{conversation_messages}\n\n"
-            "Provide the sentiment analysis in the following format:\n"
-            "{\n"
-            '  "sentiment": "<SUPER_POSITIVE/POSITIVE/NEUTRAL/NEGATIVE/SUPER_NEGATIVE>",\n'
-            '  "details": "<brief explanation of the sentiment>"\n'
-            "}"
-        )
+        prompt = f"""
+        Here is a conversation between an AI assistant and a user.
+        Analyze the sentiment of the user's messages and provide a summary of their emotional state.
+        Focus only on the user's messages.
+        {conversation_messages}
+        Provide the sentiment analysis in the following format:
+        {{
+            "sentiment": "<SUPER_POSITIVE/POSITIVE/NEUTRAL/NEGATIVE/SUPER_NEGATIVE>",
+            "details": "<brief explanation of the sentiment>"
+        }}
+        """
 
         response = self.send_request(prompt)
         parsed_response = json.loads(self.parse_response(response))
@@ -85,17 +85,17 @@ class ClaudeService(AIService):
         if not conversation_messages:
             raise ValueError("No conversation messages provided for label analysis.")
 
-        prompt = (
-            "Here is a conversation between an AI assistant and a user. "
-            "Analyze the conversation and assign the most appropriate label from the following options:\n"
-            f"{labels}\n\n"
-            f"{conversation_messages}\n\n"
-            "Provide the label analysis in the following format:\n"
-            "{\n"
-            '  "label": "<assigned_label>",\n'
-            '  "details": "<brief explanation of the label>"\n'
-            "}"
-        )
+        prompt = f"""
+        Here is a conversation between an AI assistant and a user.
+        Analyze the conversation and assign the most appropriate label from the following options:
+        {labels}
+        {conversation_messages}
+        Provide the label analysis in the following format:
+        {{
+            "label": "<assigned_label>",
+            "details": "<brief explanation of the label>"
+        }}
+        """
 
         response = self.send_request(prompt)
         parsed_response = json.loads(self.parse_response(response))
@@ -105,4 +105,30 @@ class ClaudeService(AIService):
 
         raise ValueError(
             "Unexpected response format from OpenAI API for label analysis."
+        )
+
+    def get_conversation_title(self, conversation_messages):
+        if not conversation_messages:
+            raise ValueError("No conversation messages provided for title extraction.")
+
+        prompt = f"""
+        Here is a conversation between a user and an AI assistant.
+        Focus only on the user's messages and create a concise, descriptive title that summarizes the main topic or purpose of the conversation.
+        Detect the language of the user's messages and generate the title in the same language.
+        Conversation:\n{conversation_messages}
+        Provide the title in the following format:
+        {{
+            "title": "<concise and descriptive title in the language of the messages up to 25 characters>",
+            "details": "<brief explanation of the title>"
+        }}
+        """
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(response)
+
+        if "title" in parsed_response and "details" in parsed_response:
+            return parsed_response["title"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for title extraction."
         )
