@@ -106,10 +106,12 @@ class Command(CustomBaseCommand):
                 labels_str = f"<{labels}>"
                 label, details = service.label_analysis(text, labels_str)
                 if label and details:
+                    if label not in agent.label_choices:
+                        label = "Other"
                     self.logger.info("AI Service is reachable and working correctly.")
                     self.logger.info(f"Label: {label}")
                     self.logger.info(f"Details: {details}")
-                    conversation.label = label.upper()
+                    conversation.label = label
                     # conversation.label_details = f"{engine}: {details}"
                     conversation.save()
                     self.logger.info(
