@@ -33,4 +33,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "analyze.tasks.qdrant_tasks.group_messages_task",
         "schedule": crontab(hour="*/1", minute="*/30"),
     },
+    "get_context_change_analysis": {
+        "task": "analyze.tasks.ai_tasks.get_context_change_analysis_task",
+        "schedule": crontab(minute="*/30"),
+    },
 }

@@ -95,3 +95,26 @@ def label_agent_conversations_task(agent_id, label_all=False):
         )
     )
     return True
+
+
+@shared_task
+def get_context_change_analysis_task():
+    """
+    Task to perform context change analysis on conversations.
+    """
+
+    log = Log(task_name="Get Context Change Analysis", category=Log.Category.ANALYTICS)
+    log.save()
+    try:
+        management.call_command("get_context_change_analysis")
+    except Exception as e:
+        log.complete_task_error(
+            "Error during context change analysis: {}".format(str(e))
+        )
+    now = datetime.now()
+    log.complete_task(
+        "Analyzed context changes of conversations {}".format(
+            now.strftime("%m/%d/%Y, %H:%M")
+        )
+    )
+    return True
