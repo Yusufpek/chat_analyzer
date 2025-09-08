@@ -42,6 +42,28 @@ class ConnectionSerializer(serializers.ModelSerializer):
         return data
 
 
+class ConnectionAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Connection
+        fields = [
+            "id",
+            "connection_type",
+            "sync_interval",
+            "created_at",
+            "modified_at",
+            "user",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "modified_at",
+            "user",
+            "connection_type",
+            "sync_interval",
+            "user",
+        ]
+
+
 class AgentSerializer(serializers.ModelSerializer):
     """Serializer for Agent model."""
 
