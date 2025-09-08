@@ -115,7 +115,7 @@ class SuccessResponse(JsonResponse):
         data = {
             "status": status_message,
             "content": content,
-            "duration": f"{duration} ms",
+            "duration": f"{duration:.2f} ms",
         }
         super().__init__(data=data, status=status, *args, **kwargs)
         for cookie in cookies or []:
