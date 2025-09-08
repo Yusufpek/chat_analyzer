@@ -89,6 +89,9 @@ class BaseListAPIView(generics.ListAPIView):
     Base List API view with common functionality.
     """
 
+    authentication_classes = [CustomAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get_request(self, request) -> dict:
         return ResponseStatus.SUCCESS, {"message": "List retrieved successfully"}
 
