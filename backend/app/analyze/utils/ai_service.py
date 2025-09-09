@@ -23,7 +23,21 @@ class AIService:
             "Content-Type": "application/json",
         }
 
-    def send_request(self, data):
+    def send_request_with_logging(self, data):
+        response = requests.post(self.base_url, headers=self.headers, json=data)
+
+        if response.status_code not in [200, 201]:
+            try:
+                return response.json()
+            except ValueError:
+                return response.text
+
+        return self.parse_response(response.json())
+
+    def send_request(self, data, logging=True):
+        if not logging:
+            return self.send_request_with_logging(data)
+
         log = AIServiceLog.objects.create(
             service_engine=self.engine,
             request_payload=data,

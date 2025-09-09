@@ -25,13 +25,13 @@ class EmbeddingService(AIService):
             return None
         return response["data"][0]["embedding"]
 
-    def generate_embedding(self, messages):
+    def generate_embedding(self, messages, logging=True):
         if not messages:
             raise ValueError("No messages provided for embedding generation.")
 
         points = []
         for message in messages:
-            response = self.send_request(message["content"])
+            response = self.send_request(message["content"], logging=logging)
             if response:
                 points.append(
                     {
