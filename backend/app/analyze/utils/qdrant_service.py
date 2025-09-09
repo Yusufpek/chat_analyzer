@@ -27,6 +27,27 @@ class QDrantService:
             return response["result"]
         return response
 
+    def send_request_without_log(self, endpoint, data, method):
+        if method not in ["GET", "PUT", "POST", "DELETE"]:
+            return None
+
+        if method == "GET":
+            response = requests.get(endpoint, headers=self.headers)
+        elif method == "POST":
+            response = requests.post(endpoint, headers=self.headers, json=data)
+        elif method == "PUT":
+            response = requests.put(endpoint, headers=self.headers, json=data)
+        elif method == "DELETE":
+            response = requests.delete(endpoint, headers=self.headers)
+
+        if response.status_code not in [200, 201]:
+            try:
+                return response.json()
+            except ValueError:
+                return response.text
+
+        return self.parse_response(response.json())
+
     def send_request(self, endpoint, data, method):
         if method not in ["GET", "PUT", "POST", "DELETE"]:
             return None
@@ -62,26 +83,39 @@ class QDrantService:
         log.save()
         return self.parse_response(response.json())
 
-    def send_get_request(self, endpoint):
-        return self.send_request(endpoint, {}, method="GET")
+    def send_get_request(self, endpoint, logging=True):
+        if logging:
+            return self.send_request(endpoint, {}, method="GET")
+        else:
+            return self.send_request_without_log(endpoint, {}, method="GET")
 
-    def send_put_request(self, endpoint, data):
-        return self.send_request(endpoint, data, method="PUT")
+    def send_put_request(self, endpoint, data, logging=True):
+        if logging:
+            return self.send_request(endpoint, data, method="PUT")
+        else:
+            return self.send_request_without_log(endpoint, data, method="PUT")
 
-    def send_post_request(self, endpoint, data):
-        return self.send_request(endpoint, data, method="POST")
+    def send_post_request(self, endpoint, data, logging=True):
+        if logging:
+            return self.send_request(endpoint, data, method="POST")
+        else:
+            return self.send_request_without_log(endpoint, data, method="POST")
 
     def send_delete_request(self, endpoint):
         return self.send_request(endpoint, {}, method="DELETE")
 
-    def check_collection_exists(self, collection_name):
+    def check_collection_exists(self, collection_name, logging=True):
         response = self.send_get_request(
-            f"{self.base_url}/collections/{self.prefix}_{collection_name}/exists"
+            f"{self.base_url}/collections/{self.prefix}_{collection_name}/exists",
+            logging=logging,
         )
         return response["exists"]
 
-    def get_collections(self, all=False):
-        response = self.send_get_request(f"{self.base_url}/collections")
+    def get_collections(self, all=False, logging=True):
+        response = self.send_get_request(
+            f"{self.base_url}/collections",
+            logging=logging,
+        )
         if "collections" in response:
             collections = response["collections"]
             if all:
@@ -93,7 +127,13 @@ class QDrantService:
             ]
         return response
 
-    def create_collection(self, collection_name, size=3072, distance="Cosine"):
+    def create_collection(
+        self,
+        collection_name,
+        size=3072,
+        distance="Cosine",
+        logging=True,
+    ):
         response = self.send_put_request(
             f"{self.base_url}/collections/{self.prefix}_{collection_name}",
             {
@@ -102,12 +142,13 @@ class QDrantService:
                     "distance": distance,
                 },
             },
+            logging=logging,
         )
         return response
 
-    def get_collection_details(self, collection_name):
+    def get_collection_details(self, collection_name, logging=True):
         response = self.send_get_request(
-            f"{self.base_url}/collections/{collection_name}"
+            f"{self.base_url}/collections/{collection_name}", logging=logging
         )
         return response
 
@@ -119,10 +160,11 @@ class QDrantService:
         )
         return response
 
-    def add_messages_to_collection(self, collection_name, points):
+    def add_messages_to_collection(self, collection_name, points, logging=True):
         response = self.send_put_request(
             f"{self.base_url}/collections/{self.prefix}_{collection_name}/points",
             {"points": points},
+            logging=logging,
         )
         return response.get("status", "nok") == "acknowledged"
 
