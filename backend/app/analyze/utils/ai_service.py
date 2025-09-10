@@ -97,3 +97,10 @@ class AIService:
         This method should be implemented by subclasses.
         """
         raise NotImplementedError("Subclasses must implement this method.")
+
+    def get_grouped_messages_analysis(self, messages: str):
+        """
+        Analyzes grouped messages to provide an overview, type, and details.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")

@@ -196,3 +196,37 @@ class OpenAIService(AIService):
         raise ValueError(
             "Unexpected response format from OpenAI API for title extraction."
         )
+
+    def get_grouped_messages_analysis(self, messages):
+        if not messages:
+            raise ValueError("No messages provided for grouped analysis.")
+
+        prompt = f"""
+        Here is a list of user messages from a conversation:
+        {messages}
+        Analyze the messages and perform the following tasks:
+
+        1. Provide a brief overview summarizing the main purpose or theme of these messages.
+        2. Determine the main topic of the messages.
+        3. Classify the topic as either "action" (if the messages are requesting a specific action or task) or "chat" (if the messages are general inquiries or conversation).
+
+        Respond in the following JSON format:
+        {{
+            "overview": "<brief summary of the messages>",
+            "type": "<action or chat>",
+            "details": "<explanation for why you classified it as action or chat>"
+        }}
+        """
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(response)
+
+        if any(key in parsed_response for key in ["overview", "type", "details"]):
+            return (
+                parsed_response["overview"],
+                parsed_response["type"],
+                parsed_response["details"],
+            )
+        raise ValueError(
+            "Unexpected response format from OpenAI API for title extraction."
+        )
