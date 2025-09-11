@@ -175,12 +175,13 @@ class QDrantService:
         limit=10,
         sender_type=None,
         with_payload=True,
+        score_threshold=0.5,
     ):
         payload = {
             "query": query,
             "with_payload": with_payload,
             "limit": limit,
-            "score_threshold": 0.5,
+            "score_threshold": score_threshold,
         }
 
         if sender_type:
@@ -304,6 +305,7 @@ class QDrantService:
                 limit=10,
                 sender_type=sender_type,
                 with_payload=False,
+                score_threshold=0.65,
             )
 
             for point in points:
