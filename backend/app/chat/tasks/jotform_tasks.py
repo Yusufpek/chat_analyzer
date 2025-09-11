@@ -21,6 +21,21 @@ def fetch_agent_conversations(agent_id):
 
 
 @shared_task
+def fetch_agent_conversations_and_run_analysis_task(agent_id):
+    """
+    Fetch conversations for a specific agent and run all analysis tasks.
+    """
+    log = Log(
+        task_name=f"Fetch Agent Conversations With Analysis - {agent_id}",
+        category=Log.Category.JOTFORM_FETCH,
+    )
+    log.save()
+    management.call_command("fetch_conversation_with_all_analysis", agent_id=agent_id)
+    log.complete_task("Jotform Agent Fetched with Analysis")
+    return True
+
+
+@shared_task
 def fetch_jotform_conversations_and_histories_task(connection_id):
     """
     Fetch conversations and histories for a specific JotForm connection.

@@ -20,7 +20,7 @@ from chat.utils.jotform_conversation import get_agents
 from common.constants.sources import SOURCE_FILE, SOURCE_JOTFORM
 from common.utils.jotform_api import JotFormAPIService
 from chat.tasks.jotform_tasks import (
-    fetch_agent_conversations,
+    fetch_agent_conversations_and_run_analysis_task,
     fetch_jotform_connection_periodic_task,
 )
 from common.utils.filter_mapper import filter_mapper
@@ -218,7 +218,10 @@ class AgentView(BaseAPIView):
         if serializer.is_valid():
             serializer.save()
             for agent in serializer.validated_data:
-                fetch_agent_conversations.delay_on_commit(agent_id=agent["id"])
+                print("FETCHING AND ANALYZING FOR AGENT:", agent["id"])
+                fetch_agent_conversations_and_run_analysis_task.delay_on_commit(
+                    agent_id=agent["id"]
+                )
                 if agent.get("label_choices"):
                     label_agent_conversations_task.delay_on_commit(
                         agent_id=agent["id"],
