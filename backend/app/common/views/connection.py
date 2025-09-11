@@ -273,7 +273,7 @@ class AgentView(BaseAPIView):
                 management.call_command(
                     "label_agent_conversations",
                     agent_id=agent.id,
-                    label_all=True,
+                    all=True,
                 )
 
             if (
