@@ -17,7 +17,7 @@ class Command(CustomBaseCommand):
         qdrant_service = QDrantService()
         messages = (
             ChatMessage.objects.filter(embedded_in_qdrant=False)
-            .values("embedding_id", "sender_type", "content", "conversation")
+            .values("embedding_id", "sender_type", "content", "conversation_id", "id")
             .annotate(agent_id=F("conversation__agent_id"))
             .order_by("-created_at")
         )
