@@ -8,7 +8,7 @@ class EmbeddingService(AIService):
         super().__init__(engine=EngineType.OPENAI, endpoint="v1/embeddings")
         self.model = model
 
-    def send_request(self, content):
+    def send_request(self, content, logging=True):
         data = {
             "model": self.model,
             "input": content,
@@ -16,7 +16,7 @@ class EmbeddingService(AIService):
             "dimensions": 3072,
         }
 
-        return super().send_request(data)
+        return super().send_request(data, logging=logging)
 
     def parse_response(self, response):
         if "data" not in response:
@@ -39,6 +39,8 @@ class EmbeddingService(AIService):
                         "payload": {
                             "content": message["content"],
                             "sender_type": message["sender_type"],
+                            "conversation_id": message["conversation_id"],
+                            "message_id": message["id"],
                         },
                         "vector": response,
                     }
