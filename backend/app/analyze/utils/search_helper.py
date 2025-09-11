@@ -1,5 +1,6 @@
 from analyze.utils.qdrant_service import QDrantService
 from analyze.utils.embedding_service import EmbeddingService
+from analyze.utils.openai_service import OpenAIService
 from chat.models.conversation import ChatMessage
 
 
@@ -23,17 +24,8 @@ def search_agent_with_qdrant(agent_id: str, query: str, sender_type: str = None)
             sender_type=sender_type,
         )
         if response:
-            embed_ids = []
             for message in response:
-                embed_ids.append(message["id"])
-            messages = {
-                message.embedding_id: message.conversation.id
-                for message in ChatMessage.objects.filter(embedding_id__in=embed_ids)
-            }
-            for message in response:
-                message["conversation_id"] = messages.get(
-                    message.pop("id"),
-                )
+                message.pop("id")
             return True, response
         else:
             return False, "No response from QDrant Service"
@@ -76,9 +68,16 @@ def get_grouped_messages(
     if not response:
         return False, "No response from QDrant Service"
 
+    ai_service = OpenAIService()
+
     for group in response:
         group["payloads"] = [
             embed_id_to_messages[m_id].content
+            for m_id in group["ids"]
+            if m_id in embed_id_to_messages
+        ]
+        group["conversation_ids"] = [
+            embed_id_to_messages[m_id].conversation_id
             for m_id in group["ids"]
             if m_id in embed_id_to_messages
         ]
@@ -88,4 +87,9 @@ def get_grouped_messages(
             if m_id in embed_id_to_messages
         ]
 
+        msg_str = ", ".join(msg for msg in group.get("payloads", []))
+        overview, topic, _ = ai_service.get_grouped_messages_analysis(msg_str)
+        group["overview"] = overview
+        group["type"] = topic
+    print(response)
     return True, response
