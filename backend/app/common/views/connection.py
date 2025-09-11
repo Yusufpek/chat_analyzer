@@ -2,6 +2,7 @@ import json
 from rest_framework.parsers import JSONParser
 from django.db import transaction
 from django.db.models import Q, Count
+from django.core import management
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
 from common.serializers.connection import (
@@ -269,7 +270,8 @@ class AgentView(BaseAPIView):
                 != serializer.validated_data.get("label_choices")
             ):
                 serializer.save()
-                label_agent_conversations_task.delay_on_commit(
+                management.call_command(
+                    "label_agent_conversations",
                     agent_id=agent.id,
                     label_all=True,
                 )
