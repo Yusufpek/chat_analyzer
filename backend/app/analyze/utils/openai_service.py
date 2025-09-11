@@ -209,13 +209,13 @@ class OpenAIService(AIService):
         {messages}
         Analyze the messages and perform the following tasks:
 
-        1. Provide a brief overview as a short description of the content and main purpose of these messages with a couple words.
+        1. Provide a brief overview as a short description of the content and main purpose of these messages with up to three words.
         2. Determine the main topic of the messages.
         3. Classify the type as either "action" (if the messages are requesting a specific action or task) or "chat" (if the messages are general inquiries or conversation).
 
         Respond in the following JSON format:
         {{
-            "overview": "<short description of the content and purpose>",
+            "overview": "<short description of the content in up to three words>",
             "type": "<action or chat>",
             "details": "<explanation for why you classified it as action or chat>"
         }}
