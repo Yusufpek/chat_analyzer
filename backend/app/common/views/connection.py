@@ -268,6 +268,7 @@ class AgentView(BaseAPIView):
                 and agent.label_choices
                 != serializer.validated_data.get("label_choices")
             ):
+                serializer.save()
                 label_agent_conversations_task.delay_on_commit(
                     agent_id=agent.id,
                     label_all=True,
