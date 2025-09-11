@@ -60,5 +60,7 @@ class QDrantGroupedView(BaseAPIView):
                 agent_id=agent_id,
                 messages=data,
             )
-
-        return ResponseStatus.SUCCESS, grouped_messages.messages
+        messages = [
+            msg for msg in grouped_messages.messages if msg.get("type") == "chat"
+        ]
+        return ResponseStatus.SUCCESS, messages[:3]
