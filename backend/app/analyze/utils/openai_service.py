@@ -40,7 +40,10 @@ class OpenAIService(AIService):
                 return "No message found in the first choice."
             if "content" not in response["choices"][0]["message"]:
                 return "No content found in the message."
-            return response["choices"][0]["message"]["content"]
+            response = response["choices"][0]["message"]["content"]
+            if "json" in response:
+                response = response.replace("json", "").replace("```", "").strip()
+            return response
         except Exception as e:
             print(f"Error parsing response: {e}")
         return response
@@ -206,13 +209,13 @@ class OpenAIService(AIService):
         {messages}
         Analyze the messages and perform the following tasks:
 
-        1. Provide a brief overview summarizing the main purpose or theme of these messages.
+        1. Provide a brief overview as a short description of the content and main purpose of these messages with a couple words.
         2. Determine the main topic of the messages.
-        3. Classify the topic as either "action" (if the messages are requesting a specific action or task) or "chat" (if the messages are general inquiries or conversation).
+        3. Classify the type as either "action" (if the messages are requesting a specific action or task) or "chat" (if the messages are general inquiries or conversation).
 
         Respond in the following JSON format:
         {{
-            "overview": "<brief summary of the messages>",
+            "overview": "<short description of the content and purpose>",
             "type": "<action or chat>",
             "details": "<explanation for why you classified it as action or chat>"
         }}
