@@ -43,6 +43,28 @@ def conversations_to_qdrant_task():
 
 
 @shared_task
+def conversations_to_qdrant_parallel_task():
+    """
+    Task to send conversations to Qdrant.
+    """
+
+    log = Log(
+        task_name="Send Conversations to Qdrant (Parallel)",
+        category=Log.Category.ANALYTICS,
+    )
+    log.save()
+    try:
+        management.call_command("conversations_to_qdrant_parallel")
+    except Exception as e:
+        print(e)
+    now = datetime.now()
+    log.complete_task(
+        "Sent conversations to QDrant {}".format(now.strftime("%m/%d/%Y, %H:%M"))
+    )
+    return True
+
+
+@shared_task
 def delete_collection_task(agent_id: str):
     """
     Task to delete a collection in Qdrant.
