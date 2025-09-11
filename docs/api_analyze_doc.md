@@ -95,52 +95,69 @@ Path Parameters:
   "content": [
     {
       "ids": [
-        "0198995fa5827f47a8cffa2e4e1dd237e037",
-        "0198995f9a837f53ba65ac67a567a5ed7828",
-        "0198c7edfd14746293e72864a53872114060",
-        "01989951f3db7343a160ee88f686e7eb1c5d",
-        "019899541a0a75db84997e343001460ea321",
-        "0198995e40d17e318d6886696c73a0cd74a5",
-        "0198995f3ec9772f8f65a604ce7accae80e7",
-        "0198994acd5d7cb48822f423ff49ff8fdcf0",
-        "0198995f2f687a7ebcab7a9ed2d7bc319d42",
-        "0198c7ee0aa2729fa0449c59f64861c74bcb",
-        "0198995e31287a0c9e25a9bf5875c52af184"
+        "0198c277def771c2a91f595bddb244d69011",
+        "0198c27827ca7dbe919d8df9084617378fbe",
+        "0198c270e8647d95a0fae1670612fff9566b",
+        "0198c2775c517c399065432f828bfb3db4aa",
+        "0198c276fd797035858f57af6386051fb326",
+        "0198c335683b7316a16ef5d40149f7727ee6"
       ],
+      "type": "chat",
+      "overview": "content inquiry",
       "payloads": [
-        "Refer a freelance software engineer",
-        "Refer a freelance software engineer",
-        "Learn about freelancer referrals",
-        "i want refer a freelancer friend, he is working in backend",
-        "freelancer@example.com",
-        "Learn about freelance referrals",
-        "Refer a freelance softwate engineer",
-        "Refer a freelancer",
-        "Refer a freelance softwate engineer",
-        "Learn about freelancer referrals",
-        "Learn about freelance referrals"
+        "Learn more about the content",
+        "Learn more about the content",
+        "Learn more about the content",
+        "care amaçlı seçeneklerimi öğrenmek istiyorum",
+        "içeriği daha iyi öğrenmek istiyorum",
+        "Learn more about the content"
       ],
-      "total_score": 75.47143865999999
+      "total_score": 17.294970139999997,
+      "conversation_ids": [
+        "0198c276431c7b0284ffb1314ef339c21716",
+        "0198c2781c117e6eac64187481e69bfcfc1d",
+        "0198c270b64374149ddcbd90be76c7d57e6a",
+        "0198c276431c7b0284ffb1314ef339c21716",
+        "0198c276431c7b0284ffb1314ef339c21716",
+        "0198c3355ae07624b066c2580568e9604bea"
+      ]
     },
     {
       "ids": [
-        "0198995fb39279c2a9aa6b9c0986e19c00c0",
-        "0198995f6cc27b47ae064db7a7f31ea5bd59",
-        "0198995fc17d72fdb079a3e54695a7155290",
-        "0198995f7aa574e19cb6d50ae64db81fa82b",
-        "01989957d9f17befad1e36e05aab996dcbd5"
+        "0198c27126e5765a89300312b5c3e4aeff42",
+        "0198c271c9b47dceba115fa8cc65447f093a"
       ],
+      "type": "chat",
+      "overview": "School decision dilemma",
       "payloads": [
-        "Fill Form Manually",
-        "Fill Form Manually",
-        "Fill Form Manually",
-        "Fill Form Manually",
-        "what is this form for"
+        "i cant decide if i go to school or not",
+        "if i go to scholl i may be broke"
       ],
-      "total_score": 16.1533092
+      "total_score": 1.1211042,
+      "conversation_ids": [
+        "0198c270b64374149ddcbd90be76c7d57e6a",
+        "0198c270b64374149ddcbd90be76c7d57e6a"
+      ]
+    },
+    {
+      "ids": [
+        "0198c280d5107a41a0637b599af163a325cc",
+        "0198c2802a8e7db2871b5f19a880866b0ae6"
+      ],
+      "type": "chat",
+      "overview": "Hair care inquiry",
+      "payloads": [
+        "i wants to general hair care",
+        "i have a problem with my hair"
+      ],
+      "total_score": 1.09950828,
+      "conversation_ids": [
+        "0198c27fe8527fa5b6cfb9104f1b02ad211b",
+        "0198c27fe8527fa5b6cfb9104f1b02ad211b"
+      ]
     }
   ],
-  "duration": "17.095 ms"
+  "duration": "19.38 ms"
 }
 ```
 
