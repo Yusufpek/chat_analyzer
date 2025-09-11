@@ -3,7 +3,7 @@ import { Box, Button, VStack, Text, HStack, Avatar, Center, Spinner, Checkbox } 
 import { useStore } from '@store/index';
 import { useNavigate } from 'react-router-dom';
 import { routePaths } from '@constants/routePaths';
-import { JotformAgent, JotformAgentsResponse } from '@store/agents';
+import { AgentItem, JotformAgentsResponse } from '@store/agents';
 import { CONNECTION_TYPES } from '@constants/connectionTypes';
 import GenericModal from '@components/ui/Modal';
 
@@ -16,11 +16,10 @@ type JotformAgentsModalProps = {
 const JotformAgentsModal: React.FC<JotformAgentsModalProps> = ({ isOpen, onClose, onCloseRoot }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [agents, setAgents] = useState<JotformAgentsResponse | null>(null);
-  const [selectedAgents, setSelectedAgents] = useState<JotformAgent[]>([]);
+  const [selectedAgents, setSelectedAgents] = useState<AgentItem[]>([]);
   const addAgents = useStore((s: any) => s.addAgents);
   const fetchJotformAgents = useStore((s: any) => s.fetchJotformAgents);
   const syncJotformAgents = useStore((s: any) => s.syncJotformAgents);
-  const fetchAgentsForConnection = useStore((s: any) => s.fetchAgentsForConnection);
   const navigateTo = useNavigate();
 
   const syncedIdSet = useMemo(() => new Set((agents?.synced ?? []).map(a => a.id)), [agents]);
@@ -55,9 +54,9 @@ const JotformAgentsModal: React.FC<JotformAgentsModalProps> = ({ isOpen, onClose
     };
   }, [isOpen, fetchJotformAgents]);
 
-  const isAgentSelected = (agent: JotformAgent) => selectedAgents.some(a => a.id === agent.id);
+  const isAgentSelected = (agent: AgentItem) => selectedAgents.some(a => a.id === agent.id);
 
-  const handleAgentSelection = (agent: JotformAgent, isChecked: boolean) => {
+  const handleAgentSelection = (agent: AgentItem, isChecked: boolean) => {
     setSelectedAgents(prev => {
       const isAlreadySelected = prev.some(a => a.id === agent.id);
       if (isChecked && !isAlreadySelected) {
@@ -90,14 +89,6 @@ const JotformAgentsModal: React.FC<JotformAgentsModalProps> = ({ isOpen, onClose
     try {
       setIsLoading(true);
       await syncJotformAgents(newlySelectedAgents);
-
-      // Refresh agents for the specific connection type as well
-      try {
-        await fetchAgentsForConnection(CONNECTION_TYPES.JOTFORM);
-
-      } catch (error) {
-        console.error('Failed to refresh agents for connection:', error);
-      }
 
       onClose();
       if (onCloseRoot) {

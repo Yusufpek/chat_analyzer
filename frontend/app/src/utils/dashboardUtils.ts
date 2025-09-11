@@ -38,9 +38,6 @@ export type AgentDetailsResponse = {
   duration?: string;
 };
 
-/**
- * Format duration in milliseconds to human readable string
- */
 export const formatDuration = (ms: number): string => {
   if (!Number.isFinite(ms) || ms < 0) return '-';
   const s = Math.floor(ms / 1000);
@@ -51,9 +48,6 @@ export const formatDuration = (ms: number): string => {
   return `${h}h ${m % 60}m`;
 };
 
-/**
- * Calculate conversations grouped by day
- */
 export const getConversationsByDay = (conversations: Conversation[]): Map<string, number> => {
   const map = new Map<string, number>();
   for (const c of conversations) {
@@ -64,17 +58,11 @@ export const getConversationsByDay = (conversations: Conversation[]): Map<string
   return map;
 };
 
-/**
- * Get conversations trend data sorted by date
- */
 export const getConversationsTrend = (conversationsByDay: Map<string, number>): Array<[string, number]> => {
   const entries = Array.from(conversationsByDay.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   return entries as Array<[string, number]>;
 };
 
-/**
- * Transform conversations trend data for chart display
- */
 export const getChartData = (conversationsTrend: Array<[string, number]>) => {
   return conversationsTrend.map(([date, count]) => ({ 
     conversations: count, 
@@ -82,9 +70,6 @@ export const getChartData = (conversationsTrend: Array<[string, number]>) => {
   }));
 };
 
-/**
- * Calculate weekday activity data
- */
 export const getWeekdayData = (conversations: Conversation[]): Array<[string, number]> => {
   const weekday = new Map<string, number>();
   for (const c of conversations) {
@@ -98,9 +83,6 @@ export const getWeekdayData = (conversations: Conversation[]): Array<[string, nu
   return order.map((d) => [d, map.get(d) || 0]) as Array<[string, number]>;
 };
 
-/**
- * Calculate response time statistics from messages
- */
 export const getResponseTimeStats = (messages: Message[]) => {
   type Pair = { deltaMs: number };
   const pairs: Pair[] = [];
@@ -139,9 +121,6 @@ export const getResponseTimeStats = (messages: Message[]) => {
   return { count: deltas.length, avg, p50, p90, min, max };
 };
 
-/**
- * Calculate sentiment totals and percentages from agent details
- */
 export const getSentimentTotals = (details: AgentDetailsContent | null) => {
   const total = details?.total_sentiment_count || 0;
   const superPositive = details?.super_positive_count || 0;
@@ -171,9 +150,6 @@ export const getSentimentTotals = (details: AgentDetailsContent | null) => {
   };
 };
 
-/**
- * Get all messages from conversations
- */
 export const getAllMessages = (conversations: Conversation[], messagesByConversation: Record<string, Message[]>) => {
   if (!Array.isArray(conversations) || conversations.length === 0) return [];
   
@@ -186,9 +162,6 @@ export const getAllMessages = (conversations: Conversation[], messagesByConversa
   return all.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 };
 
-/**
- * Get agent name by ID
- */
 export const getAgentName = (agents: any[], agentId: string) => {
   return agents?.find((a: any) => a.id === agentId)?.name || 'Unknown';
 };

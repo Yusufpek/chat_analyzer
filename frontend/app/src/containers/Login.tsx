@@ -6,44 +6,6 @@ import { routePaths } from '../constants/routePaths';
 import { useStore } from '@store/index';
 
 const Login = () => {
-  const formatLoginError = (raw: unknown): string => {
-    if (!raw) return '';
-    const text = String(raw).trim();
-
-    // Try to parse JSON error payloads coming from backend
-    try {
-      const json = JSON.parse(text);
-      if (json && typeof json === 'object') {
-        if (typeof (json as any).detail === 'string') return (json as any).detail;
-        if (typeof (json as any).message === 'string') return (json as any).message;
-        if (Array.isArray((json as any).non_field_errors) && (json as any).non_field_errors.length > 0) {
-          return String((json as any).non_field_errors[0]);
-        }
-        if (Array.isArray((json as any).errors) && (json as any).errors.length > 0) {
-          return String((json as any).errors[0]);
-        }
-      }
-    } catch (_) {
-      // not JSON, continue with heuristics
-    }
-
-    // TODO: fix backend instead of this
-    const lower = text.toLowerCase();
-
-    if (lower.includes('invalid') && (lower.includes('username') || lower.includes('password') || lower.includes('credentials')))
-      return 'Username or password is incorrect.';
-    if (lower.includes('csrf'))
-      return 'Authentication failed. Please refresh the page and try again.';
-    if (lower.includes('forbidden') || lower.includes('unauthorized') || lower.includes('401') || lower.includes('403'))
-      return 'You are not authorized to perform this action.';
-    if (lower.includes('not found') || lower.includes('404'))
-      return 'Service not found. Please try again later.';
-    if (lower.includes('internal server error') || lower.includes('500'))
-      return 'Server error. Please try again later.';
-    if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('timeout'))
-      return 'Network connection failed. Please check your internet connection and try again.';
-    return 'An error occurred during login. Please check your information and try again.';
-  };
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigateTo = useNavigate();
@@ -51,7 +13,7 @@ const Login = () => {
   const isLoadingLogin = useStore((s: any) => s.isLoadingLogin);
   const loginError = useStore((s: any) => s.loginError);
   const fetchAgents = useStore((s: any) => s.fetchAgents);
-
+  const setSelectedAgentId = useStore((s: any) => s.setSelectedAgentId);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const ok = await login(username, password);
@@ -60,7 +22,8 @@ const Login = () => {
       const fetchedAgents = await fetchAgents();
       if (fetchedAgents && fetchedAgents.length > 0) {
         const firstAgentId = fetchedAgents[0].id;
-        navigateTo(routePaths.analyzeDashboard(firstAgentId));
+        setSelectedAgentId(firstAgentId);
+        navigateTo(routePaths.analyze());
       } else {
         navigateTo(routePaths.landing());
       }
@@ -220,7 +183,7 @@ const Login = () => {
                 Login
               </Button>
               {loginError && (
-                <Text color="#DC2626" fontSize="0.875rem">{formatLoginError(loginError)}</Text>
+                <Text color="#DC2626" fontSize="0.875rem">{loginError}</Text>
               )}
             </Stack>
           </form>

@@ -26,6 +26,7 @@ export const Header = () => {
   const isLoadingLogin = useStore((s: any) => s.isLoadingLogin);
   const user = useStore((s: any) => s.user);
   const setSelectedConnectionType = useStore((s: any) => s.setSelectedConnectionType);
+  const setSelectedAgentId = useStore((s: any) => s.setSelectedAgentId);
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -280,11 +281,13 @@ export const Header = () => {
   return (
     <Box
       as="header"
-      bg="rgba(255, 255, 255, 0.8)"
-      backdropFilter="blur(20px)"
-      position="sticky"
+      bg="white"
+      position="fixed"
       top={0}
+      left={0}
+      right={0}
       zIndex={1000}
+      borderBottom="1px solid #E2E8F0"
     >
       <Container maxW="82.5rem" px={4}>
         <Flex
@@ -294,7 +297,10 @@ export const Header = () => {
           minH="5.5rem"
         >
           {/* Logo/App Name */}
-          <RouterLink to="/" style={{ textDecoration: 'none'}}>
+          <RouterLink 
+            to="/" 
+            style={{ textDecoration: 'none'}}
+          >
             <Text
               fontSize="1.5rem"
               fontWeight={700}

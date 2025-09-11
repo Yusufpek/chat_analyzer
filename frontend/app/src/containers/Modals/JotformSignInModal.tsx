@@ -1,11 +1,27 @@
 import React, { useState } from 'react';
 import { Box, Button, VStack, Text, Input, HStack, Avatar, Center, Spinner, Checkbox } from '@chakra-ui/react';
-import { request } from '@api/requestLayer';
 import { useStore } from '@store/index';
 import { useNavigate } from 'react-router-dom';
 import { routePaths } from '@constants/routePaths';
-import { JotformAgent, JotformAgentsResponse } from '@store/agents';
+import { AgentItem, JotformAgentsResponse } from '@store/agents';
 import GenericModal from '@components/ui/Modal';
+
+//TODO
+     // conversation scrollable and maxheight hem liste hemde conversation için
+     // landing agent varsa direk analayze dashboard gelsin
+
+// dashboardda frequent keywrod graphi ekle. tıklayınca conversation sayfasına git
+     // dashboarda sentiment grfinpini kaldır
+     // context change conversation sayfasında title yanında view i butonu ekle. basınca modal açılsın ve context overall ve timeline
+//keyword ile arama
+
+     // bütün conversatiolar varsa all seçili olsun 
+
+      //statistics sayfasında conv id yerine title
+
+// label hoverda genişle çarpı çıkar delete
+
+
 
 type JotformSignInModalProps = {
   isOpen: boolean;
@@ -13,15 +29,16 @@ type JotformSignInModalProps = {
 };
 
 const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose }) => {
-  const [apiKey, setApiKey] = useState(''); // TODO: show api key input as password
+  const [apiKey, setApiKey] = useState('');
   const [syncInterval, setSyncInterval] = useState('30');
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [agents, setAgents] = useState<JotformAgentsResponse | null>(null);
-  const [selectedAgents, setSelectedAgents] = useState<JotformAgent[]>([]);
+  const [selectedAgents, setSelectedAgents] = useState<AgentItem[]>([]);
   const [connectionId, setConnectionId] = useState<number | null>(null);
   const fetchJotformAgents = useStore((s: any) => s.fetchJotformAgents);
   const syncJotformAgents = useStore((s: any) => s.syncJotformAgents);
+  const createConnection = useStore((s: any) => s.createConnection);
   const authStatus = useStore((s: any) => s.authStatus);
   const navigateTo = useNavigate();
 
@@ -31,7 +48,7 @@ const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose
   ];
 
   const handleCreateConnection = async () => {
-    // Redirect to login if user is not authenticated
+    
     if (authStatus !== 'authenticated') {
       onClose();
       navigateTo(routePaths.login());
@@ -52,14 +69,9 @@ const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose
         config: {}
       };
 
-      // TODO: move to store
-      const response = await request('/api/connection/', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-
-      if (response.status === 'CREATED') {
-        setConnectionId(response.content.content.id);
+      const connection = await createConnection(payload);
+      if (connection) {
+        setConnectionId(connection.id);
         await loadAgents();
         setCurrentStep(1);
       } else {
@@ -78,7 +90,6 @@ const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose
       const agentsData = await fetchJotformAgents();
       if (agentsData) {
         setAgents(agentsData);
-        // Pre-select synced agents
         setSelectedAgents(agentsData.synced);
       }
     } catch (error) {
@@ -87,7 +98,7 @@ const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose
     }
   };
 
-  const handleAgentSelection = (agent: JotformAgent, isChecked: boolean) => {
+  const handleAgentSelection = (agent: AgentItem, isChecked: boolean) => {
     if (isChecked) {
       setSelectedAgents(prev => [...prev, agent]);
     } else {
@@ -115,7 +126,6 @@ const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose
     }
   };
 
-  // TODO: move to store
   const resetModal = () => {
     setApiKey('');
     setSyncInterval('30');
@@ -131,7 +141,7 @@ const JotformSignInModal: React.FC<JotformSignInModalProps> = ({ isOpen, onClose
     resetModal();
   };
 
-  const isAgentSelected = (agent: JotformAgent) => {
+  const isAgentSelected = (agent: AgentItem) => {
     return selectedAgents.some(a => a.id === agent.id);
   };
 

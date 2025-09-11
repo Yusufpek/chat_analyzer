@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Box, VStack, HStack, Text, Avatar } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+
 import { useStore } from '@store/index';  
 
 const ConversationMessages = () => {
-  const { agentId, convID } = useParams();
+  const agentId = useStore((s: any) => s.selectedAgentId);
+  const convID = useStore((s: any) => s.selectedConversationId);
 
   const fetchMessagesForConversation = useStore((s: any) => s.fetchMessagesForConversation);
   const messagesByConversation = useStore((s: any) => s.messagesByConversation);
@@ -18,6 +19,11 @@ const ConversationMessages = () => {
     if (!agentId || !Array.isArray(agents)) return null;
     const agent = agents.find((a: any) => String(a.id) === String(agentId));
     return agent?.avatar_url || null;
+  }, [agentId, agents]);
+
+  const agent = useMemo(() => {
+    if (!agentId || !Array.isArray(agents)) return null;
+    return agents.find((a: any) => String(a.id) === String(agentId));
   }, [agentId, agents]);
 
   useEffect(() => {
@@ -40,13 +46,14 @@ const ConversationMessages = () => {
   }, [sortedMessages.length]);
 
   return (
-    <Box flex={1} bg="#FFF6FF" display="flex" flexDirection="column" height="100%">
+    <Box flex={1} bg="#FFF6FF" display="flex" flexDirection="column" height="100%" overflow="auto">
       <Box
         ref={scrollRef}
         flex={1}
         overflowY="auto"
         px={6}
         py={4}
+        height="100%"
       >
         <VStack align="stretch" gap={3}>
           {isLoadingMessages && (
@@ -92,6 +99,19 @@ const ConversationMessages = () => {
             );
           })}
         </VStack>
+        <Box mt={6} mb={2} display="flex" alignItems="center" justifyContent="center">
+          <Box display="flex" alignItems="center" gap={4}>
+            <Avatar.Root w="56px" h="56px" borderRadius="full" overflow="hidden" flexShrink={0}>
+              <Avatar.Fallback bg="#621CB1" color="white" fontSize="2xl">
+                {agent?.name ? agent.name[0] : 'A'}
+              </Avatar.Fallback>
+              {agentAvatarUrl ? <Avatar.Image src={agentAvatarUrl} /> : null}
+            </Avatar.Root>
+            <Text fontSize="2xl" fontWeight="bold" className="ca-color-primary">
+              {agent?.name || 'Agent'}
+            </Text>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

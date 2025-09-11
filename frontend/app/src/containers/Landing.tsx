@@ -22,6 +22,11 @@ const Landing = () => {
   const [isAddFromProductModalOpen, setIsAddFromProductModalOpen] = useState(false);
   const navigate = useNavigate();
   const authStatus = useStore((s: any) => s.authStatus);
+  const agents = useStore((s: any) => s.agents);
+  const fetchAgents = useStore((s: any) => s.fetchAgents);
+  const authInitialized = useStore((s: any) => s.authInitialized);
+  const setSelectedAgentId = useStore((s: any) => s.setSelectedAgentId);
+  const selectedAgentId = useStore((s: any) => s.selectedAgentId);
   const primaryColor = '#0A0807';
   const secondaryColor = '#B6ED43';
 
@@ -138,6 +143,41 @@ const Landing = () => {
       observer.disconnect();
     };
   }, []);
+
+  // Redirect to analyze page if user is authenticated and has agents
+  useEffect(() => {
+    const checkAndRedirect = async () => {
+      // Wait for auth to be initialized
+      if (!authInitialized) return;
+      
+      // If user is authenticated
+      if (authStatus === 'authenticated') {
+        // If agents are already loaded and there are agents, redirect
+        if (agents && agents.length > 0) {
+          // Set the first agent as selected if none is selected
+          if (!selectedAgentId) {
+            setSelectedAgentId(agents[0].id);
+          }
+          navigate(routePaths.analyze());
+          return;
+        }
+        
+        // If no agents loaded yet, try to fetch them
+        try {
+          const fetchedAgents = await fetchAgents();
+          if (fetchedAgents && fetchedAgents.length > 0) {
+            // Set the first agent as selected
+            setSelectedAgentId(fetchedAgents[0].id);
+            navigate(routePaths.analyze());
+          }
+        } catch (error) {
+          console.error('Failed to fetch agents for redirect check:', error);
+        }
+      }
+    };
+
+    checkAndRedirect();
+  }, [authInitialized, authStatus, agents, selectedAgentId, fetchAgents, navigate, setSelectedAgentId]);
 
   return (
     <>
