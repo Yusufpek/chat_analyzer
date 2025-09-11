@@ -169,7 +169,7 @@ Path Parameters:
 
 #### **Optional Query Parameters**:
 
-- **`agent_id`**: (Optional) Filter context changes by a specific agent ID.
+- **`conversation_id`**: (Optional) Filter context changes by a specific agent ID.
 
 #### **Response**:
 
