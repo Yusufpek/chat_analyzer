@@ -28,6 +28,7 @@ from common.utils.filter_mapper import filter_mapper
 from chat.models.conversation import Conversation, ChatMessage
 from analyze.tasks.ai_tasks import label_agent_conversations_task
 from analyze.tasks.qdrant_tasks import delete_collection_task
+from analyze.models.statistics import GroupedMessages, ContextChange
 
 
 class ConnectionView(BaseAPIView):
@@ -252,7 +253,11 @@ class AgentView(BaseAPIView):
                 ChatMessage.objects.filter(
                     conversation_id__in=conversation_ids
                 ).delete()
+                ContextChange.objects.filter(
+                    conversation_id__in=conversation_ids
+                ).delete()
                 Conversation.objects.filter(id__in=conversation_ids).delete()
+                GroupedMessages.objects.filter(agent_id=agent.id).delete()
                 delete_collection_task.delay_on_commit(agent_id=agent.id)
                 agent.delete()
             return ResponseStatus.SUCCESS, {"message": "Agent deleted successfully."}
