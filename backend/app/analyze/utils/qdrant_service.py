@@ -336,9 +336,13 @@ class QDrantService:
                 visited.add(point_id)
 
                 cluster["ids"].add(point_id)
-                cluster["total_score"] += message_details[point_id]["total_score"]
+                cluster["total_score"] += message_details.get(
+                    point_id, {"total_score": 0}
+                )["total_score"]
 
-                for related_id in message_details[point_id]["point_ids"]:
+                for related_id in message_details.get(point_id, {}).get(
+                    "point_ids", []
+                ):
                     if related_id not in visited:
                         queue.append(related_id)
 
