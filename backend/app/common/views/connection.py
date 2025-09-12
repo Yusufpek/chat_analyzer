@@ -21,6 +21,7 @@ from common.constants.sources import SOURCE_FILE, SOURCE_JOTFORM
 from common.utils.jotform_api import JotFormAPIService
 from chat.tasks.jotform_tasks import (
     fetch_agent_conversations_and_run_analysis_task,
+    run_all_analysis_task,
     fetch_jotform_connection_periodic_task,
 )
 from common.utils.filter_mapper import filter_mapper
@@ -166,11 +167,16 @@ class FileSourceView(BaseAPIView):
                         )
                     else:
                         json_data = file.read().decode("utf-8")
-                        get_conversation_messages_from_json(
+                        total_messages = get_conversation_messages_from_json(
                             user=request.user,
                             json_data=json.loads(json_data),
                             agent_id=agent.id,
                         )
+                        if total_messages == 0:
+                            raise ValueError(
+                                "No valid messages found in the JSON file."
+                            )
+                    run_all_analysis_task.delay_on_commit()
             except Exception as e:
                 return ResponseStatus.BAD_REQUEST, {"errors": str(e)}
 
