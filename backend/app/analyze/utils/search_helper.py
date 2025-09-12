@@ -71,25 +71,21 @@ def get_grouped_messages(
     ai_service = OpenAIService()
 
     for group in response:
-        group["payloads"] = [
-            embed_id_to_messages[m_id].content
+        group["payloads"] = {
+            embed_id_to_messages[m_id].id: {
+                "content": embed_id_to_messages[m_id].content,
+                "conversation_id": embed_id_to_messages[m_id].conversation_id,
+            }
             for m_id in group["ids"]
             if m_id in embed_id_to_messages
-        ]
-        group["conversation_ids"] = [
-            embed_id_to_messages[m_id].conversation_id
-            for m_id in group["ids"]
-            if m_id in embed_id_to_messages
-        ]
-        group["ids"] = [
-            embed_id_to_messages[m_id].id
-            for m_id in group["ids"]
-            if m_id in embed_id_to_messages
-        ]
+        }
+        group.pop("ids")
 
-        msg_str = ", ".join(msg for msg in group.get("payloads", []))
+        msg_str = ""
+        for payload in group["payloads"].values():
+            msg_str += f"{payload['content']}, "
+        msg_str = msg_str.strip().rstrip(",")
         overview, topic, _ = ai_service.get_grouped_messages_analysis(msg_str)
         group["overview"] = overview
         group["type"] = topic
-    print(response)
     return True, response

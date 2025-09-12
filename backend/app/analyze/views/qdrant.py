@@ -2,6 +2,7 @@ from common.base.base_api_view import BaseAPIView, ResponseStatus
 from analyze.utils.search_helper import search_agent_with_qdrant, get_grouped_messages
 from analyze.models.statistics import GroupedMessages
 from common.models.connection import Agent
+import traceback
 
 
 class QDrantSearchView(BaseAPIView):
@@ -50,17 +51,20 @@ class QDrantGroupedView(BaseAPIView):
         agent = Agent.objects.filter(id=agent_id, connection__user=request.user).first()
         if not agent:
             return ResponseStatus.NOT_FOUND, {"error": "Agent not found"}
-
-        grouped_messages = GroupedMessages.objects.filter(agent_id=agent_id).first()
-        if not grouped_messages:
-            status, data = get_grouped_messages(agent_id, sender_type="user")
-            if not status:
-                return ResponseStatus.INTERNAL_SERVER_ERROR, {"error": data}
-            grouped_messages = GroupedMessages.objects.create(
-                agent_id=agent_id,
-                messages=data,
-            )
-        messages = [
-            msg for msg in grouped_messages.messages if msg.get("type") == "chat"
-        ]
-        return ResponseStatus.SUCCESS, messages[:3]
+        try:
+            grouped_messages = GroupedMessages.objects.filter(agent_id=agent_id).first()
+            if not grouped_messages:
+                status, data = get_grouped_messages(agent_id, sender_type="user")
+                if not status:
+                    return ResponseStatus.INTERNAL_SERVER_ERROR, {"error": data}
+                grouped_messages = GroupedMessages.objects.create(
+                    agent_id=agent_id,
+                    messages=data,
+                )
+            messages = [
+                msg for msg in grouped_messages.messages if msg.get("type") == "chat"
+            ]
+            return ResponseStatus.SUCCESS, messages[:3]
+        except Exception as e:
+            traceback.print_exc()
+            return ResponseStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}

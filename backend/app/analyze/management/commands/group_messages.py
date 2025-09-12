@@ -3,6 +3,7 @@ from analyze.utils.search_helper import get_grouped_messages
 from analyze.models.statistics import GroupedMessages
 from common.models.connection import Agent
 from chat.models.conversation import ChatMessage
+import traceback
 
 
 class Command(CustomBaseCommand):
@@ -32,7 +33,11 @@ class Command(CustomBaseCommand):
         if not agent_ids:
             agent_ids = Agent.objects.values_list("id", flat=True)
 
-        grouped_messages = []
+        if not agent_ids:
+            self.logger.info("No agents found. Exiting.")
+            return
+
+        # grouped_messages = []
         for agent_id in agent_ids:
             try:
                 grouped = GroupedMessages.objects.filter(agent_id=agent_id).first()
@@ -57,21 +62,29 @@ class Command(CustomBaseCommand):
                         grouped.delete()
 
                     # create new grouped messages
-                    grouped_messages.append(
-                        GroupedMessages(
-                            agent_id=agent_id,
-                            messages=data,
-                        )
+                    GroupedMessages.objects.create(
+                        agent_id=agent_id,
+                        messages=data,
                     )
+                    self.logger.info(
+                        f"Agent: {agent_id} - Grouped messages created successfully."
+                    )
+
+                    # grouped_messages.append(
+                    #     GroupedMessages(
+                    #         agent_id=agent_id,
+                    #         messages=data,
+                    #     )
+                    # )
                 else:
                     self.logger.error(
                         f"QDrant Query Service returned an error: {data} - agent: {agent_id}"
                     )
             except Exception as e:
+                traceback.print_exc()
                 self.logger.error(f"An error occurred: {str(e)} - agent: {agent_id}")
-        else:
-            self.logger.info("No agent IDs provided.")
 
-        if grouped_messages:
-            GroupedMessages.objects.bulk_create(grouped_messages)
-            self.logger.info(f"Created {len(grouped_messages)} grouped messages.")
+        # if grouped_messages:
+        #     GroupedMessages.objects.bulk_create(grouped_messages)
+        #     self.logger.info(f"Created {len(grouped_messages)} grouped messages.")
+        self.logger.info("Command finished.")
