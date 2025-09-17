@@ -1,5 +1,4 @@
 import React, { useCallback, useState , useEffect} from 'react';
-import { useParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -22,7 +21,8 @@ import { LuUpload } from 'react-icons/lu';
 import { useStore } from '@store/index';
 
 const Analyze = () => {
-  const { agentId } = useParams();
+  const agentId = useStore((s: any) => s.selectedAgentId);
+  const selectedAgentId = useStore((s: any) => s.selectedAgentId);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -147,11 +147,11 @@ const Analyze = () => {
   }, []);
 
   return (
-    <Flex minH="100%" bg="#FFFFFF" align="stretch">
-      <SideNavigationBar selectedAgentId={agentId} />
+    <Flex bg="#FFFFFF" align="stretch" height="calc(100vh - 88px)" overflow="hidden">
+      <SideNavigationBar selectedAgentId={agentId}/>
       
-      <Box flex={1} position="relative" bg="#FFFFFF" minH="100%">
-        {agentId ? (
+      <Box flex={1} position="relative" bg="#FFFFFF" overflow="hidden" height="100%">
+        {(location.pathname !== "/analyze") ? (
           <AnalyzeMain />
         ) : (
           /* Top Section - Gradient Background */

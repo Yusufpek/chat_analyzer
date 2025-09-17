@@ -40,7 +40,10 @@ class OpenAIService(AIService):
                 return "No message found in the first choice."
             if "content" not in response["choices"][0]["message"]:
                 return "No content found in the message."
-            return response["choices"][0]["message"]["content"]
+            response = response["choices"][0]["message"]["content"]
+            if "json" in response:
+                response = response.replace("json", "").replace("```", "").strip()
+            return response
         except Exception as e:
             print(f"Error parsing response: {e}")
         return response
@@ -70,7 +73,7 @@ class OpenAIService(AIService):
         )
 
         response = self.send_request(prompt)
-        parsed_response = json.loads(self.parse_response(response))
+        parsed_response = json.loads(response)
 
         if "sentiment" in parsed_response and "details" in parsed_response:
             return parsed_response["sentiment"], parsed_response["details"]
@@ -103,11 +106,130 @@ class OpenAIService(AIService):
         )
 
         response = self.send_request(prompt)
-        parsed_response = json.loads(self.parse_response(response))
+        parsed_response = json.loads(response)
 
         if "label" in parsed_response and "details" in parsed_response:
             return parsed_response["label"], parsed_response["details"]
 
         raise ValueError(
             "Unexpected response format from OpenAI API for label analysis."
+        )
+
+    def context_change_analysis(self, conversation_messages):
+        if not conversation_messages:
+            raise ValueError(
+                "No conversation messages provided for sentiment analysis."
+            )
+
+        prompt = f"""
+        Here is a conversation between a user and an AI assistant. Analyze the conversation to determine the following:
+
+        1. The overall context of the conversation.
+        2. The main topics discussed during the conversation.
+        3. Identify where the context of the conversation changed (if any), and describe the transitions between topics.
+        4. Focus on user messages
+
+        Provide the analysis in the following structured format:
+        {{
+            "overall_context": "<brief summary of the overall context>",
+            "topics": [
+            {{
+                "topic": "<name of the topic>",
+                "details": "<brief explanation of the topic>",
+                "start_message": "<index or content of the message where the topic starts>",
+                "end_message": "<index or content of the message where the topic ends>"
+            }},
+            ],
+            "context_changes": [
+                {{
+                "from_topic": "<name of the previous topic>",
+                    "to_topic": "<name of the new topic>",
+                    "change_message": "<index or content of the message where the context changed>",
+                    "details": "<brief explanation of the context change>"
+                }},
+            ]
+        }}
+        Conversation:
+        {conversation_messages}
+
+        Provide the analysis in JSON format.
+        """
+
+        response = self.send_request(prompt)
+        if "json" in response:
+            response = response.replace("json", "").replace("```", "").strip()
+        parsed_response = json.loads(response)
+
+        if any(
+            key in parsed_response
+            for key in ["overall_context", "topics", "context_changes"]
+        ):
+            return (
+                parsed_response["overall_context"],
+                parsed_response["topics"],
+                parsed_response["context_changes"],
+            )
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for label analysis."
+        )
+
+    def get_conversation_title(self, conversation_messages):
+        if not conversation_messages:
+            raise ValueError("No conversation messages provided for title extraction.")
+
+        prompt = f"""
+        Here is a conversation between a user and an AI assistant.
+        Focus only on the user's messages and create a concise, descriptive title that summarizes the main topic or purpose of the conversation.
+        Detect the language of the user's messages and generate the title in the same language.
+        Conversation:\n{conversation_messages}
+        Provide the title in the following format:
+        {{
+            "title": "<concise and descriptive title in the language of the messages up to 25 characters>",
+            "details": "<brief explanation of the title>"
+        }}
+        """
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(response)
+
+        if "title" in parsed_response and "details" in parsed_response:
+            return parsed_response["title"], parsed_response["details"]
+
+        raise ValueError(
+            "Unexpected response format from OpenAI API for title extraction."
+        )
+
+    def get_grouped_messages_analysis(self, messages):
+        if not messages:
+            raise ValueError("No messages provided for grouped analysis.")
+
+        prompt = f"""
+        Here is a list of user messages from a conversation:
+        {messages}
+        Analyze the messages and perform the following tasks:
+
+        1. Provide a brief overview as a short description of the content and main purpose of these messages with up to three words.
+        2. Determine the main topic of the messages.
+        3. Classify the type as either "action" (if the messages are requesting a specific action or task) or "chat" (if the messages are general inquiries or conversation).
+
+        Respond in the following JSON format:
+        {{
+            "overview": "<short description of the content in up to three words>",
+            "type": "<action or chat>",
+            "details": "<explanation for why you classified it as action or chat>"
+        }}
+        """
+
+        response = self.send_request(prompt)
+        parsed_response = json.loads(response)
+
+        if any(key in parsed_response for key in ["overview", "type", "details"]):
+            return (
+                parsed_response["overview"],
+                parsed_response["type"],
+                parsed_response["details"],
+            )
+        raise ValueError(
+            "Unexpected response format from OpenAI API for title extraction."
         )

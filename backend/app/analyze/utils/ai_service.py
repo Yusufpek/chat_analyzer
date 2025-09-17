@@ -1,7 +1,7 @@
 import requests
 
 from django.conf import settings
-from analyze.models.ai_log import AIServiceLog
+from analyze.models.log import AIServiceLog
 from .engine_types import EngineType
 
 
@@ -23,7 +23,21 @@ class AIService:
             "Content-Type": "application/json",
         }
 
-    def send_request(self, data):
+    def send_request_with_logging(self, data):
+        response = requests.post(self.base_url, headers=self.headers, json=data)
+
+        if response.status_code not in [200, 201]:
+            try:
+                return response.json()
+            except ValueError:
+                return response.text
+
+        return self.parse_response(response.json())
+
+    def send_request(self, data, logging=True):
+        if not logging:
+            return self.send_request_with_logging(data)
+
         log = AIServiceLog.objects.create(
             service_engine=self.engine,
             request_payload=data,
@@ -66,6 +80,27 @@ class AIService:
     def label_analysis(self, conversation_messages: str, labels: list):
         """
         Performs label analysis on the provided conversation messages.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def context_change_analysis(self, conversation_messages: str):
+        """
+        Performs context change analysis on the provided conversation messages.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def get_conversation_title(self, conversation_messages: str):
+        """
+        Generates a title for the provided conversation messages.
+        This method should be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def get_grouped_messages_analysis(self, messages: str):
+        """
+        Analyzes grouped messages to provide an overview, type, and details.
         This method should be implemented by subclasses.
         """
         raise NotImplementedError("Subclasses must implement this method.")

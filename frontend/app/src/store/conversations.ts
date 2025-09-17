@@ -10,6 +10,7 @@ export interface ConversationItem {
 	last_message: string | null;
 	assistant_avatar_url?: string | null;
 	label?: string | null;
+	title?: string | null;
 }
 
 export interface ConversationsSliceState {
@@ -23,9 +24,10 @@ export interface ConversationsSliceState {
 	getConversationsForAgent: (agentId: string) => ConversationItem[];
 	fetchConversations: (agentId: string) => Promise<void>;
 	refreshConversations: (agentId: string) => Promise<void>;
+	fetchContextChangeDetails: (conversationId: string) => Promise<any>;
 }
 
-// Zustand store types
+
 type SetState = (partial: Partial<ConversationsSliceState> | ((state: ConversationsSliceState) => Partial<ConversationsSliceState>)) => void;
 type GetState = () => ConversationsSliceState;
 
@@ -111,6 +113,15 @@ export const createConversationsSlice = (set: SetState, get: GetState): Conversa
 		} catch (error: any) {
 			const errorMessage = error?.message || "Failed to refresh conversations";
 			set({ conversationsError: errorMessage, isLoadingConversations: false });
+		}
+	},
+	fetchContextChangeDetails: async (conversationId: string) => {
+		if (!conversationId) return null;
+		try {
+			const data = await request(`/api/analyze/context_change/${conversationId}/details/`, { method: "GET" });
+			return data?.content ?? null;
+		} catch (error) {
+			return null;
 		}
 	},
 });

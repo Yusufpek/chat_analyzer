@@ -189,7 +189,7 @@ const AddConversationModal: React.FC<AddConversationModalProps> = ({ isOpen, onC
 
 
           try {
-            routerNavigate(routePaths.analyzeMain(createdAgentId));
+            routerNavigate(routePaths.analyzeMain());
           } catch (navError) {
             console.error('Navigation failed:', navError);
           }

@@ -1,23 +1,18 @@
 import { request } from "@api/requestLayer";
+import { AgentDetailsContent, AgentDetailsResponse } from "@utils/dashboardUtils";
 
 export interface AgentItem {
 	id: string;
 	name: string;
 	avatar_url: string | null;
 	connection_type: string;
-}
-
-export interface JotformAgent {
-	id: string;
-	avatar_url: string | null;
-	name: string;
+	label_choices: string[] | null;
 	jotform_render_url?: string | null;
-	connection_type: string;
 }
 
 export interface JotformAgentsResponse {
-	unsynced: JotformAgent[];
-	synced: JotformAgent[];
+	unsynced: AgentItem[];
+	synced: AgentItem[];
 }
 
 export interface AgentsSliceState {
@@ -37,10 +32,21 @@ export interface AgentsSliceState {
 	fetchAgents: (connection_type?: string) => Promise<void>;
 	clearAgents: () => void;
 	deleteAgent: (agentId: string) => Promise<void>;
+	updateAgentLabels: (agentId: string, labelChoices: string[]) => void;
+	
+	// Agent details state and functions
+	agentDetails: Record<string, AgentDetailsContent>;
+	isLoadingAgentDetails: boolean;
+	agentDetailsError: string | null;
+	fetchAgentDetails: (agentId: string) => Promise<void>;
+	clearAgentDetails: (agentId?: string) => void;
 	
 	// Jotform specific functions
 	fetchJotformAgents: () => Promise<JotformAgentsResponse | null>;
-	syncJotformAgents: (agents: JotformAgent[]) => Promise<void>;
+	syncJotformAgents: (agents: AgentItem[]) => Promise<void>;
+
+	// Analyze/Qdrant
+	qdrantSearch: (agentId: string, query: string) => Promise<any[]>;
 }
 
 
@@ -51,6 +57,9 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 	agents: [],
 	connectionAgents: {},
 	selectedConnectionType: 'jotform',
+	agentDetails: {},
+	isLoadingAgentDetails: false,
+	agentDetailsError: null,
 	setAgents: (agents: AgentItem[]) => {
 		set({ agents });
 	},
@@ -105,6 +114,27 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 			set({ agentsError: errorMessage });
 			throw error;
 		}
+	},
+	updateAgentLabels: (agentId: string, labelChoices: string[]) => {
+		const currentAgents = get().agents;
+		const updatedAgents = currentAgents.map(agent => 
+			agent.id === agentId 
+				? { ...agent, label_choices: labelChoices }
+				: agent
+		);
+		
+		// Also update per-connection cache
+		const currentConn = get().connectionAgents || {};
+		const updatedConn: Record<string, AgentItem[]> = {};
+		Object.entries(currentConn).forEach(([key, list]) => {
+			updatedConn[key] = list.map(agent => 
+				agent.id === agentId 
+					? { ...agent, label_choices: labelChoices }
+					: agent
+			);
+		});
+		
+		set({ agents: updatedAgents, connectionAgents: updatedConn });
 	},
 	isLoadingAgents: false,
 	setIsLoadingAgents: (isLoading: boolean) => set({ isLoadingAgents: isLoading }),
@@ -176,7 +206,7 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 		}
 	},
 	
-	syncJotformAgents: async (agents: JotformAgent[]) => {
+	syncJotformAgents: async (agents: AgentItem[]) => {
 		try {
 			const payload = {
 				agents: agents.map(agent => ({
@@ -184,7 +214,8 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 					name: agent.name,
 					avatar_url: agent.avatar_url,
 					jotform_render_url: agent.jotform_render_url || `https://agent.jotform.com/${agent.id}`,
-					connection_type: 'jotform'
+					connection_type: 'jotform',
+					label_choices: agent.label_choices || null
 				}))
 			};
 
@@ -195,9 +226,72 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 
 			// Add agents to store
 			get().addAgents(payload.agents);
+			
+			// Update connection-specific cache
+			const currentConnectionAgents = get().getAgentsForConnection('jotform');
+			const updatedConnectionAgents = [...currentConnectionAgents, ...payload.agents];
+			get().setAgentsForConnection('jotform', updatedConnectionAgents);
 		} catch (error) {
 			console.error('Failed to sync Jotform agents:', error);
 			throw error;
+		}
+	},
+
+	// Analyze/Qdrant
+	qdrantSearch: async (agentId: string, query: string) => {
+		const trimmed = (query || '').trim();
+		if (!trimmed) return [];
+		if (!agentId) throw new Error('Agent ID required');
+		const data = await request('/api/analyze/qdrant_search/', {
+			method: 'POST',
+			body: JSON.stringify({ agent_id: agentId, query: trimmed })
+		});
+		const content = Array.isArray((data as any)?.content) ? (data as any).content : [];
+		return content;
+	},
+	
+	fetchAgentDetails: async (agentId: string) => {
+		// Do not fetch if user is not authenticated
+		const stateAny = get() as any;
+		if (stateAny?.authStatus !== "authenticated") return;
+
+		// If already cached, do nothing
+		const currentDetails = get().agentDetails;
+		if (currentDetails[agentId]) return;
+
+		const { isLoadingAgentDetails } = get();
+		if (isLoadingAgentDetails) return;
+
+		set({ isLoadingAgentDetails: true, agentDetailsError: null });
+		try {
+			const res: AgentDetailsResponse = await request(`/api/agent/${agentId}/details`, { method: 'GET' });
+			if (res?.status === 'SUCCESS') {
+				const currentDetails = get().agentDetails;
+				set({ 
+					agentDetails: { ...currentDetails, [agentId]: res.content },
+					isLoadingAgentDetails: false 
+				});
+			} else {
+				set({ 
+					agentDetailsError: 'Failed to load agent details',
+					isLoadingAgentDetails: false 
+				});
+			}
+		} catch (error: any) {
+			set({ 
+				agentDetailsError: error?.message || 'Failed to load agent details',
+				isLoadingAgentDetails: false 
+			});
+		}
+	},
+	
+	clearAgentDetails: (agentId?: string) => {
+		if (agentId) {
+			const currentDetails = get().agentDetails;
+			const { [agentId]: removed, ...remaining } = currentDetails;
+			set({ agentDetails: remaining });
+		} else {
+			set({ agentDetails: {} });
 		}
 	},
 });

@@ -44,6 +44,8 @@ def get_chat_messages(
         message_content = json.loads(message["message"])
         if message["uuid"] in chat_message_ids:
             continue
+        if message["type"] == "MemoryMasterPrompt":
+            continue
         if message_content["role"] not in ["user", "assistant"]:
             continue
         if message_content.get("function_call"):

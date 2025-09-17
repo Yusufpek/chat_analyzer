@@ -1,18 +1,25 @@
-import React from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Tabs, TabsList, TabsTrigger, TabsContent } from "@chakra-ui/react";
 import AnalyzeDashboard from './AnalyzeDashboard';
 import AnalyzeConversations from './AnalyzeConversations';
 import AnalyzeStatistics from './AnalyzeStatistics';
 import AnalyzeSentiment from './AnalyzeSentiment';
 import AnalyzeSettings from './AnalyzeSettings';
+import { useStore } from '@store/index';
 
 
 const AnalyzeMain = () => {
-  // TODO path shorten
-  const { agentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Store selectors
+  const agents = useStore((s: any) => s.agents);
+  const selectedAgentId = useStore((s: any) => s.selectedAgentId);
+  const setSelectedAgentId = useStore((s: any) => s.setSelectedAgentId);
+  const fetchAgents = useStore((s: any) => s.fetchAgents);
+  const authStatus = useStore((s: any) => s.authStatus);
+  const authInitialized = useStore((s: any) => s.authInitialized);
 
   // Determine which tab is active based on current path
   const getActiveTab = () => {
@@ -21,36 +28,69 @@ const AnalyzeMain = () => {
     if (location.pathname.includes('/statistics')) return 'statistics';
     if (location.pathname.includes('/sentiment')) return 'sentiment';
     if (location.pathname.includes('/settings')) return 'settings';
-    return 'dashboard';
+    return "dashboard";
+    
   };
+
+  // Set last added agent as selected when on dashboard tab and no agent is selected
+  useEffect(() => {
+    const setLastAgentIfNeeded = async () => {
+      // Only run if user is authenticated and we're on dashboard tab
+      if (!authInitialized || authStatus !== 'authenticated') return;
+      if (!location.pathname.includes('/dashboard')) return;
+      
+      // If no agent is selected, try to set the last added agent (most recent)
+      if (!selectedAgentId) {
+        // If agents are already loaded and there are agents, set the last one
+        if (agents && agents.length > 0) {
+          setSelectedAgentId(agents[agents.length - 1].id);
+          return;
+        }
+        
+        // If no agents loaded yet, try to fetch them
+        try {
+          const fetchedAgents = await fetchAgents();
+          if (fetchedAgents && fetchedAgents.length > 0) {
+            setSelectedAgentId(fetchedAgents[fetchedAgents.length - 1].id);
+          }
+        } catch (error) {
+          console.error('Failed to fetch agents for dashboard:', error);
+        }
+      }
+    };
+
+    setLastAgentIfNeeded();
+  }, [authInitialized, authStatus, location.pathname, selectedAgentId, agents, setSelectedAgentId, fetchAgents]);
 
   const handleTabChange = (details: { value: string }) => {
     switch (details.value) {
       case 'dashboard':
-        navigate(`/analyze/${agentId}/dashboard`);
+        navigate(`/analyze/dashboard`);
         break;
       case 'conversations':
-        navigate(`/analyze/${agentId}/conversations`);
+        navigate(`/analyze/conversations`);
         break;
       case 'statistics':
-        navigate(`/analyze/${agentId}/statistics`);
+        navigate(`/analyze/statistics`);
         break;
       case 'sentiment':
-        navigate(`/analyze/${agentId}/sentiment`);
+        navigate(`/analyze/sentiment`);
         break;
       case 'settings':
-        navigate(`/analyze/${agentId}/settings`);
+        navigate(`/analyze/settings`);
         break;
     }
   };
 
   return (
-    <Box position="relative" bg="#FFF6FF" width="full" minH="100%">
+    <Box position="relative" bg="#FFF6FF" width="full" height="100%" display="flex" flexDirection="column" overflow="hidden">
       <Tabs.Root 
-        defaultValue={getActiveTab()}
+        value={getActiveTab()}
         onValueChange={handleTabChange}
         width="full"
         height="full"
+        display="flex"
+        flexDirection="column"
       >
         <TabsList 
           bg="#FFF6FF"
@@ -191,20 +231,20 @@ const AnalyzeMain = () => {
           </TabsTrigger>
         </TabsList>
         
-        <Box pos="relative" minH="calc(100vh - 120px)" width="full" bg="#FFF6FF">
-          <TabsContent value="dashboard" position="relative" minH="calc(100vh - 120px)">
+        <Box pos="relative" width="full" bg="#FFF6FF" flex="1" overflow="hidden" height="calc(100% - 60px)">
+          <TabsContent value="dashboard" position="relative" height="100%" overflow="auto">
             <AnalyzeDashboard/>
           </TabsContent>
-          <TabsContent value="conversations" position="relative" minH="calc(100vh - 120px)">
+          <TabsContent value="conversations" position="relative" height="100%" overflow="auto">
             <AnalyzeConversations />
           </TabsContent>
-          <TabsContent value="statistics" position="relative" minH="calc(100vh - 120px)">
+          <TabsContent value="statistics" position="relative" height="100%" overflow="auto">
             <AnalyzeStatistics />
           </TabsContent>
-          <TabsContent value="sentiment" position="relative" minH="calc(100vh - 120px)">
+          <TabsContent value="sentiment" position="relative" height="100%" overflow="auto">
             <AnalyzeSentiment />
           </TabsContent>
-          <TabsContent value="settings" position="relative" minH="calc(100vh - 120px)">
+          <TabsContent value="settings" position="relative" height="100%" overflow="auto">
             <AnalyzeSettings />
           </TabsContent>
         </Box>

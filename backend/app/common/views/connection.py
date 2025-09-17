@@ -2,6 +2,7 @@ import json
 from rest_framework.parsers import JSONParser
 from django.db import transaction
 from django.db.models import Q, Count
+from django.core import management
 
 from common.base.base_api_view import BaseAPIView, ResponseStatus
 from common.serializers.connection import (
@@ -19,15 +20,14 @@ from chat.utils.jotform_conversation import get_agents
 from common.constants.sources import SOURCE_FILE, SOURCE_JOTFORM
 from common.utils.jotform_api import JotFormAPIService
 from chat.tasks.jotform_tasks import (
-    fetch_agent_conversations,
+    fetch_agent_conversations_and_run_analysis_task,
+    run_all_analysis_task,
     fetch_jotform_connection_periodic_task,
 )
 from common.utils.filter_mapper import filter_mapper
 from chat.models.conversation import Conversation, ChatMessage
-from analyze.tasks.ai_tasks import (
-    label_conversations_task,
-    setup_label_conversations_periodic_task,
-)
+from analyze.tasks.ai_tasks import label_agent_conversations_task
+from analyze.tasks.qdrant_tasks import delete_collection_task
 
 
 class ConnectionView(BaseAPIView):
@@ -83,6 +83,8 @@ class ConnectionView(BaseAPIView):
                 ).delete()
                 Conversation.objects.filter(agent_id__in=agent_ids).delete()
                 Agent.objects.filter(id__in=agent_ids).delete()
+                for agent_id in agent_ids:
+                    delete_collection_task.delay_on_commit(agent_id=agent_id)
                 connection.delete()
             return ResponseStatus.SUCCESS, {
                 "message": "Connection deleted successfully with all associated data."
@@ -165,11 +167,16 @@ class FileSourceView(BaseAPIView):
                         )
                     else:
                         json_data = file.read().decode("utf-8")
-                        get_conversation_messages_from_json(
+                        total_messages = get_conversation_messages_from_json(
                             user=request.user,
                             json_data=json.loads(json_data),
                             agent_id=agent.id,
                         )
+                        if total_messages == 0:
+                            raise ValueError(
+                                "No valid messages found in the JSON file."
+                            )
+                    run_all_analysis_task.delay_on_commit()
             except Exception as e:
                 return ResponseStatus.BAD_REQUEST, {"errors": str(e)}
 
@@ -217,11 +224,14 @@ class AgentView(BaseAPIView):
         if serializer.is_valid():
             serializer.save()
             for agent in serializer.validated_data:
-                fetch_agent_conversations.delay_on_commit(agent_id=agent["id"])
+                print("FETCHING AND ANALYZING FOR AGENT:", agent["id"])
+                fetch_agent_conversations_and_run_analysis_task.delay_on_commit(
+                    agent_id=agent["id"]
+                )
                 if agent.get("label_choices"):
-                    setup_label_conversations_periodic_task.delay_on_commit(
+                    label_agent_conversations_task.delay_on_commit(
                         agent_id=agent["id"],
-                        sync_interval=connection.sync_interval,
+                        label_all=True,
                     )
             return ResponseStatus.SUCCESS, serializer.data
         return ResponseStatus.BAD_REQUEST, serializer.errors
@@ -243,6 +253,7 @@ class AgentView(BaseAPIView):
                     conversation_id__in=conversation_ids
                 ).delete()
                 Conversation.objects.filter(id__in=conversation_ids).delete()
+                delete_collection_task.delay_on_commit(agent_id=agent.id)
                 agent.delete()
             return ResponseStatus.SUCCESS, {"message": "Agent deleted successfully."}
         except Exception as e:
@@ -262,17 +273,24 @@ class AgentView(BaseAPIView):
             }
         serializer = AgentSerializer(agent, data=data, partial=True)
         if serializer.is_valid():
-            if agent.label_choices != serializer.validated_data.get("label_choices"):
-                label_conversations_task.delay_on_commit(
+            if (
+                agent.label_choices
+                and agent.label_choices
+                != serializer.validated_data.get("label_choices")
+            ):
+                serializer.save()
+                management.call_command(
+                    "label_agent_conversations",
                     agent_id=agent.id,
-                    label_all=True,
+                    all=True,
                 )
 
-            if "label_choices" in serializer.validated_data:
-                setup_label_conversations_periodic_task(
-                    agent_id=agent.id,
-                    sync_interval=agent.connection.sync_interval,
-                )
+            if (
+                "label_choices" in serializer.validated_data
+                and serializer.validated_data.get("label_choices") == []
+            ):
+                Conversation.objects.filter(agent_id=agent.id).update(label=None)
+
             serializer.save()
             return ResponseStatus.ACCEPTED, serializer.data
         return ResponseStatus.BAD_REQUEST, {"errors": serializer.errors}

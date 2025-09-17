@@ -23,7 +23,6 @@ interface SideNavigationBarProps {
 
 const CONNECTION_TYPE_EMOJIS: Record<ConnectionType, string> = {
   [CONNECTION_TYPES.JOTFORM]: '/jotform.png',
-  [CONNECTION_TYPES.CHATGPT]: '/gpt.png',
   [CONNECTION_TYPES.FILE]: '📁',
 };
 
@@ -51,6 +50,7 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
   const authStatus = useStore((s: any) => s.authStatus);
   const authInitialized = useStore((s: any) => s.authInitialized);
   const isLoadingAgents = useStore((s: any) => s.isLoadingAgents);
+  const setSelectedAgentId = useStore((s: any) => s.setSelectedAgentId);
 
   const handleAddAgent = () => {
     if (!authInitialized || authStatus !== 'authenticated') {
@@ -85,9 +85,9 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
         onMouseEnter={() => setIsNavOpen(true)}
         onMouseLeave={() => setIsNavOpen(false)}
         overflow="hidden"
-        minH="100vh"
         flexShrink={0}
         alignSelf="stretch"
+        height="100%"
       >
         <VStack gap={4} p={4} align="stretch" h="100%" justify="space-between">
           <VStack gap={4} align="stretch">
@@ -229,7 +229,10 @@ const SideNavigationBar: React.FC<SideNavigationBarProps> = ({
                   minH="40px"
                   alignItems="center"
                   border="1px solid transparent"
-                  onClick={() => navigate(`/analyze/${agent.id}`)}
+                  onClick={() => {
+                    setSelectedAgentId(agent.id.toString());
+                    navigate(`/analyze/dashboard`);
+                  }}
                   bg={selectedAgentId === agent.id.toString() ? "#FFF6FF" : "transparent"}
                   borderColor={selectedAgentId === agent.id.toString() ? "#D200D3" : "transparent"}
                 >

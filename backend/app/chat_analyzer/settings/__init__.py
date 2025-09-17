@@ -11,4 +11,5 @@ include(
     "ai_service.py",
     "logging.py",
     "celery.py",
+    "qdrant.py",
 )

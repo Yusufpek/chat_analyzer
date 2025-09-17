@@ -10,8 +10,6 @@ type AddFromProductModalProps = {
   onClose: () => void;
 };
 
-// TODO: add modal types
-
 type ProductTile = {
   id: string;
   name: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+
 import { Box, HStack, SimpleGrid, Text, VStack, Badge } from '@chakra-ui/react';
 import { useStore } from '@store/index';
 import {
@@ -22,7 +22,7 @@ import {
 } from '@utils/statisticsUtils';
 
 const AnalyzeStatistics = () => {
-  const { agentId } = useParams();
+  const agentId = useStore((s: any) => s.selectedAgentId);
 
   const agents = useStore((s: any) => s.agents);
   const conversationsByAgent = useStore((s: any) => s.conversationsByAgent);
@@ -431,7 +431,7 @@ const AnalyzeStatistics = () => {
                         #{index + 1}
                       </Badge>
                       <Text className="ca-color-primary" fontSize="sm" fontWeight="medium" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                        {r.id}
+                        {r.title}
                       </Text>
                     </HStack>
                     <Badge variant="subtle" colorScheme="purple" fontSize="sm" px={3} py={1}>
@@ -477,7 +477,7 @@ const AnalyzeStatistics = () => {
                         #{index + 1}
                       </Badge>
                       <Text className="ca-color-primary" fontSize="sm" fontWeight="medium" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                        {r.id}
+                        {r.title}
                       </Text>
                     </HStack>
                     <Badge variant="subtle" colorScheme="orange" fontSize="sm" px={3} py={1}>
@@ -493,68 +493,6 @@ const AnalyzeStatistics = () => {
               </VStack>
             </Box>
           </VStack>
-        </Box>
-
-        <Box>
-          <Text className="ca-color-primary" fontSize="lg" fontWeight="bold" mb={3}>Breakdown</Text>
-          <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-            <Box p={6} bg="#FFFFFF" border="1px solid" className="ca-border-gray" borderRadius="lg" _hover={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" }} transition="all 0.2s ease-in-out">
-              <HStack mb={4} align="center">
-                <Box w={3} h={3} bg="teal.400" borderRadius="full" />
-                <Text className="ca-color-quaternary" fontSize="md" fontWeight="semibold">By Source</Text>
-              </HStack>
-              <VStack align="stretch" gap={2}>
-                {sourceBreakdown.source.map((item, index) => (
-                  <HStack key={item[0]} justify="space-between" p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.100">
-                    <HStack gap={3}>
-                      <Badge variant="solid" colorScheme="teal" borderRadius="full" px={2}>
-                        #{index + 1}
-                      </Badge>
-                      <Text className="ca-color-primary" fontSize="sm" fontWeight="medium">
-                        {item[0]}
-                      </Text>
-                    </HStack>
-                    <Badge variant="subtle" colorScheme="teal" fontSize="sm" px={3} py={1}>
-                      {item[1]} conversations
-                    </Badge>
-                  </HStack>
-                ))}
-                {!sourceBreakdown.source.length ? (
-                  <Box p={4} textAlign="center">
-                    <Text className="ca-color-quaternary" fontSize="sm">No source data available</Text>
-                  </Box>
-                ) : null}
-              </VStack>
-            </Box>
-            <Box p={6} bg="#FFFFFF" border="1px solid" className="ca-border-gray" borderRadius="lg" _hover={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" }} transition="all 0.2s ease-in-out">
-              <HStack mb={4} align="center">
-                <Box w={3} h={3} bg="pink.400" borderRadius="full" />
-                <Text className="ca-color-quaternary" fontSize="md" fontWeight="semibold">By Chat Type</Text>
-              </HStack>
-              <VStack align="stretch" gap={2}>
-                {sourceBreakdown.type.map((item, index) => (
-                  <HStack key={item[0]} justify="space-between" p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.100">
-                    <HStack gap={3}>
-                      <Badge variant="solid" colorScheme="pink" borderRadius="full" px={2}>
-                        #{index + 1}
-                      </Badge>
-                      <Text className="ca-color-primary" fontSize="sm" fontWeight="medium">
-                        {item[0]}
-                      </Text>
-                    </HStack>
-                    <Badge variant="subtle" colorScheme="pink" fontSize="sm" px={3} py={1}>
-                      {item[1]} conversations
-                    </Badge>
-                  </HStack>
-                ))}
-                {!sourceBreakdown.type.length ? (
-                  <Box p={4} textAlign="center">
-                    <Text className="ca-color-quaternary" fontSize="sm">No chat type data available</Text>
-                  </Box>
-                ) : null}
-              </VStack>
-            </Box>
-          </SimpleGrid>
         </Box>
 
         <Box h="1px" bg="#E1DFE0" />

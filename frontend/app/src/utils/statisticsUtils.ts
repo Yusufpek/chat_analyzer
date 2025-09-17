@@ -7,6 +7,7 @@ export type Conversation = {
   status: string;
   agent_id: string;
   last_message: string | null;
+  title: string | null;
 };
 
 export type Message = {
@@ -154,7 +155,7 @@ export const getResponseTimeStats = (conversations: Conversation[], messagesByCo
 
 // Conversation aggregation
 export const getConversationAggregation = (conversations: Conversation[], messagesByConversation: Record<string, Message[]>) => {
-  type Row = { id: string; msgCount: number; durationMs: number };
+  type Row = { id: string; title: string; msgCount: number; durationMs: number };
   const rows: Row[] = [];
   
   for (const c of conversations) {
@@ -167,7 +168,7 @@ export const getConversationAggregation = (conversations: Conversation[], messag
       ? safeDate(list[list.length - 1].created_at).getTime() - safeDate(list[0].created_at).getTime() 
       : 0;
     
-    rows.push({ id: c.id, msgCount, durationMs });
+    rows.push({ id: c.id, title: c.title || '', msgCount, durationMs });
   }
   
   const msgCounts = rows.map((r) => r.msgCount).sort((a, b) => a - b);

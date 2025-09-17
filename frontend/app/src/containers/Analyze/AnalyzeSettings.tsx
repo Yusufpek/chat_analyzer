@@ -1,15 +1,17 @@
-import React, { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { Box, Flex, HStack, VStack, Text, Badge } from '@chakra-ui/react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Box, Flex, HStack, VStack, Text, Badge, Button } from '@chakra-ui/react';
 import { useStore } from '@store/index';
 import { CONNECTION_TYPE_LABELS } from '@constants/connectionTypes';
+import ManageLabelsModal from '../Modals/ManageLabelsModal';
 
 const AnalyzeSettings = () => {
-  const { agentId } = useParams();
+  const agentId = useStore((s: any) => s.selectedAgentId);
 
   const agents = useStore((s: any) => s.agents);
   const conversationsByAgent = useStore((s: any) => s.conversationsByAgent);
   const fetchConversations = useStore((s: any) => s.fetchConversations);
+  const setAgents = useStore((s: any) => s.setAgents);
+  const fetchAgents = useStore((s: any) => s.fetchAgents);
 
   useEffect(() => {
     if (agentId && fetchConversations) fetchConversations(agentId);
@@ -17,6 +19,19 @@ const AnalyzeSettings = () => {
 
   const agent = useMemo(() => agents?.find((a: any) => String(a.id) === String(agentId)), [agents, agentId]);
   const conversations = useMemo(() => (agentId ? (conversationsByAgent?.[agentId] || []) : []), [conversationsByAgent, agentId]);
+
+  const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
+
+  const handleOpenLabelModal = useCallback(() => setIsLabelModalOpen(true), []);
+  const handleCloseLabelModal = useCallback(() => setIsLabelModalOpen(false), []);
+  const handleLabelDeleted = useCallback(() => {
+    // Refresh agents data to get updated labels
+    if (fetchAgents) {
+      fetchAgents();
+    }
+  }, [fetchAgents]);
+
+  // Label add/remove submit logic will be handled inside the modal later
 
   const latestActivity = useMemo(() => {
     if (!conversations || conversations.length === 0) return null;
@@ -115,6 +130,52 @@ const AnalyzeSettings = () => {
                 </Text>
               </Box>
             </Flex>
+
+            {/* Labels */}
+            <Box
+              className="ca-border-gray"
+              border="1px solid"
+              borderRadius="xl"
+              p={6}
+              bg="#FFFFFF"
+            >
+              <HStack justify="space-between" align="center" mb={4}>
+                <Text className="ca-color-primary" fontSize="lg" fontWeight="semibold">Labels</Text>
+                <Button size="sm" className="ca-bg-tertiary" color="#FFFFFF" _hover={{ bg: '#B600B7' }} onClick={handleOpenLabelModal}>
+                  Edit Labels
+                </Button>
+              </HStack>
+
+              {agent?.label_choices && agent.label_choices.length > 0 ? (
+                <Flex wrap="wrap" gap={2}>
+                  {agent.label_choices.map((label: string) => (
+                    <Box key={label}>
+                      <Badge colorScheme="purple" borderRadius="md" px={2} py={1} fontSize="0.75rem">
+                        {label}
+                      </Badge>
+                    </Box>
+                  ))}
+                </Flex>
+              ) : (
+                <Box
+                  className="ca-border-gray"
+                  border="1px dashed"
+                  borderRadius="md"
+                  p={4}
+                  bg="#FFF6FF"
+                >
+                  <Text className="ca-color-quaternary">No labels yet. Click "Edit Labels" to add one.</Text>
+                </Box>
+              )}
+            </Box>
+
+            {/* Manage Labels Modal */}
+            <ManageLabelsModal
+              isOpen={isLabelModalOpen}
+              onClose={handleCloseLabelModal}
+              agent={agent || null}
+              onLabelDeleted={handleLabelDeleted}
+            />
           </>
         )}
       </VStack>

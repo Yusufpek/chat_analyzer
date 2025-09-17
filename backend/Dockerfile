@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     libldap2-dev=2.5.13+dfsg-5 \
     libsasl2-dev=2.1.28+dfsg-10 \
     libpq-dev \
-    postgresql-client=15+248 \
-    iputils-ping=3:20221126-1+deb12u1  \    
+    postgresql-client-15 \
+    iputils-ping=3:20221126-1+deb12u1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt /tmp/

@@ -1,43 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo } from 'react';
 import { Box, HStack, SimpleGrid, Text, VStack, Badge, Spinner } from '@chakra-ui/react';
 import { useStore } from '@store/index';
 import { CONNECTION_TYPE_LABELS } from '@constants/connectionTypes';
-import { request } from '@api/requestLayer';
 
-
-interface AgentDetailsContent {
-  id: string;
-  avatar_url: string | null;
-  name: string;
-  jotform_render_url?: string | null;
-  total_conversations: number;
-  total_messages: number;
-  sentiment_score: number; // e.g., 3.38
-  total_sentiment_count: number; // e.g., 8
-  super_positive_count: number;
-  positive_count: number;
-  neutral_count: number;
-  negative_count: number;
-  super_negative_count: number;
-}
-
-interface AgentDetailsResponse {
-  status: 'SUCCESS' | 'FAIL';
-  content: AgentDetailsContent;
-  duration?: string;
-}
 
 const AnalyzeSentiment = () => {
-  const { agentId } = useParams();
+  const agentId = useStore((s: any) => s.selectedAgentId);
 
   const agents = useStore((s: any) => s.agents);
   const selectedConnectionType = useStore((s: any) => s.selectedConnectionType);
   const conversationsByAgent = useStore((s: any) => s.conversationsByAgent);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [details, setDetails] = useState<AgentDetailsContent | null>(null);
+  // Agent details from store
+  const agentDetails = useStore((s: any) => s.agentDetails);
+  const fetchAgentDetails = useStore((s: any) => s.fetchAgentDetails);
+  const isLoadingAgentDetails = useStore((s: any) => s.isLoadingAgentDetails);
+  const agentDetailsError = useStore((s: any) => s.agentDetailsError);
 
   const agent = useMemo(() => {
     if (!agentId) return null;
@@ -50,33 +28,17 @@ const AnalyzeSentiment = () => {
     return Array.isArray(list) ? list : [];
   }, [agentId, conversationsByAgent]);
 
-  useEffect(() => {
-    let isActive = true;
-    const fetchDetails = async () => {
-      if (!agentId) return;
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res: AgentDetailsResponse = await request(`/api/agent/${agentId}/details`, { method: 'GET' });
-        if (res?.status === 'SUCCESS' && res?.content && isActive) {
-          setDetails(res.content);
-        } else if (isActive) {
-          setError('Failed to load agent details');
-        }
-      } catch (e: any) {
-        if (isActive) setError(e?.message || 'Failed to load agent details');
-      } finally {
-        if (isActive) setIsLoading(false);
-      }
-    };
+  // Get agent details from store
+  const details = agentId ? agentDetails[agentId] || null : null;
 
-    fetchDetails();
-    return () => {
-      isActive = false;
-    };
-  }, [agentId]);
+  useEffect(() => {
+    if (!agentId) return;
+    if (fetchAgentDetails) fetchAgentDetails(agentId);
+  }, [agentId, fetchAgentDetails]);
 
   const totalAnalyzed = details?.total_sentiment_count || 0;
+  const isLoading = isLoadingAgentDetails;
+  const error = agentDetailsError;
 
   const sentimentBreakdown = useMemo(() => {
     if (!details) return [] as { key: string; label: string; count: number; color: string; }[];

@@ -30,6 +30,20 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [location.pathname]);
+
+  // Prevent body scroll when on analyze page
+  useEffect(() => {
+    if (location.pathname.startsWith('/analyze')) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Cleanup function to restore scroll when component unmounts
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [location.pathname]);
   
   return (
     <Provider>
@@ -54,7 +68,7 @@ export default function App() {
       ) : (
         <>
           <Header />
-            <main style={{ flex: 1, paddingBottom: '20px'}}>
+            <main style={{ flex: 1, paddingTop: '88px'}}>
               <Routes>
                 {getRoutes().map(route => {
                   return (
@@ -67,7 +81,7 @@ export default function App() {
                 })}
               </Routes>
             </main>
-          <Footer />
+          {location.pathname.startsWith('/analyze') ? null : <Footer />}
         </>
       )}
     </div>

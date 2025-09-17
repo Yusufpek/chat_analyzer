@@ -6,6 +6,21 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 
 @shared_task
+def run_all_analysis_task():
+    """
+    Run all analysis tasks.
+    """
+    log = Log(
+        task_name="Run All Analysis Tasks",
+        category=Log.Category.ANALYTICS,
+    )
+    log.save()
+    management.call_command("run_all_analysis")
+    log.complete_task("All Analysis Tasks Completed")
+    return True
+
+
+@shared_task
 def fetch_agent_conversations(agent_id):
     """
     Fetch conversations for a specific agent.
@@ -17,6 +32,21 @@ def fetch_agent_conversations(agent_id):
     log.save()
     management.call_command("fetch_jotform_agent_conversations", agent_id=agent_id)
     log.complete_task("Jotform Agent Fetched")
+    return True
+
+
+@shared_task
+def fetch_agent_conversations_and_run_analysis_task(agent_id):
+    """
+    Fetch conversations for a specific agent and run all analysis tasks.
+    """
+    log = Log(
+        task_name=f"Fetch Agent Conversations With Analysis - {agent_id}",
+        category=Log.Category.JOTFORM_FETCH,
+    )
+    log.save()
+    management.call_command("fetch_conversation_with_all_analysis", agent_id=agent_id)
+    log.complete_task("Jotform Agent Fetched with Analysis")
     return True
 
 

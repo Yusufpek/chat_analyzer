@@ -21,7 +21,7 @@ class BaseAPIView(generics.GenericAPIView):
         """
         return ResponseStatus.BAD_REQUEST, {"message": "Delete request not implemented"}
 
-    def get_request(self, request) -> dict:
+    def get_request(self, request, *args, **kwargs) -> dict:
         """
         Handles GET requests.
         """
@@ -88,6 +88,9 @@ class BaseListAPIView(generics.ListAPIView):
     """
     Base List API view with common functionality.
     """
+
+    authentication_classes = [CustomAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get_request(self, request) -> dict:
         return ResponseStatus.SUCCESS, {"message": "List retrieved successfully"}

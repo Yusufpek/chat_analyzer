@@ -38,26 +38,26 @@ export const routePaths = {
   analyze: () => {
     return `/analyze`;
   },
-  analyzeMain: (agentId: string = "") => {
-    return `/analyze/${agentId}`;
+  analyzeMain: () => {
+    return `/analyze`;
   },
-  analyzeDashboard: (agentId: string = "") => {
-    return `/analyze/${agentId}/dashboard`;
+  analyzeDashboard: () => {
+    return `/analyze/dashboard`;
   },
-  analyzeStatistics: (agentId: string = "") => {
-    return `/analyze/${agentId}/statistics`;
+  analyzeStatistics: () => {
+    return `/analyze/statistics`;
   },
-  analyzeSentiment: (agentId: string = "") => {
-    return `/analyze/${agentId}/sentiment`;
+  analyzeSentiment: () => {
+    return `/analyze/sentiment`;
   },
-  analyzeConversations: (agentId: string = "") => {
-    return `/analyze/${agentId}/conversations`;
+  analyzeConversations: () => {
+    return `/analyze/conversations`;
   },
-  analyzeConversationDetail: (agentId: string = '', convId: string = '') => {
-    return `/analyze/${agentId}/conversations/${convId}`;
+  analyzeConversationDetail: () => {
+    return `/analyze/conversations`;
   },
-  analyzeSettings: (agentId: string = "") => {
-    return `/analyze/${agentId}/settings`;
+  analyzeSettings: () => {
+    return `/analyze/settings`;
   },
   navigate
 };

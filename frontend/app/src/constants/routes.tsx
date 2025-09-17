@@ -19,6 +19,11 @@ const getRoutes = () => [
     exact: true,
   },
   {
+    path: routePaths.mainRoute(),
+    component: Landing,
+    exact: true,
+  },
+  {
     path: routePaths.landing(),
     component: Landing,
     exact: true,
@@ -39,37 +44,37 @@ const getRoutes = () => [
     exact: true,
   },
   {
-    path: routePaths.analyzeMain(":agentId"),
+    path: routePaths.analyzeMain(),
     component: Analyze,
     exact: false,
   },
   {
-    path: routePaths.analyzeConversations(":agentId"),
+    path: routePaths.analyzeConversations(),
     component: Analyze,
     exact: true,
   },
   {
-    path: routePaths.analyzeConversationDetail(":agentId", ":convID"),
+    path: routePaths.analyzeConversationDetail(),
     component: Analyze,
     exact: true,
   },
   {
-    path: routePaths.analyzeDashboard(":agentId"),
+    path: routePaths.analyzeDashboard(),
     component: Analyze,
     exact: true,
   },
   {
-    path: routePaths.analyzeStatistics(":agentId"),
+    path: routePaths.analyzeStatistics(),
     component: Analyze,
     exact: true,
   },
   {
-    path: routePaths.analyzeSentiment(":agentId"),
+    path: routePaths.analyzeSentiment(),
     component: Analyze,
     exact: true,
   },
   {
-    path: routePaths.analyzeSettings(":agentId"),
+    path: routePaths.analyzeSettings(),
     component: Analyze,
     exact: true,
   }
