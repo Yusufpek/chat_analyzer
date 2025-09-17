@@ -10,6 +10,7 @@ import {
   Circle,
   Badge,
   Input,
+  Spinner,
 } from '@chakra-ui/react';
 import { useStore } from '@store/index';
 import { Tooltip } from '@components/ui/tooltip';
@@ -17,6 +18,7 @@ import { LuInfo } from 'react-icons/lu';
 import ConversationMessages from './ConversationMessages';
 import AddLabelModal from '@Modals/AddLabelModal';
 import ContextChangeModal from '@Modals/ContextChangeModal';
+import SemanticSearchModal from '@Modals/SemanticSearchModal';
 
 type Conversation = {
   id: string;
@@ -99,6 +101,7 @@ const AnalyzeConversations= () => {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [isContextChangeModalOpen, setContextChangeModalOpen] = useState(false);
   const [contextChangeModalData, setContextChangeModalData] = useState<any>(null);
+  const [isSemanticSearchModalOpen, setIsSemanticSearchModalOpen] = useState(false);
   const fetchContextChangeDetails = useStore((s: any) => s.fetchContextChangeDetails);
 
   
@@ -170,7 +173,13 @@ const AnalyzeConversations= () => {
               fontSize="20px"
               borderRadius="full"
               bg="#F7F2FA"
-              _hover={{ bg: "#FFF6FF", color: "#D200D3" }}
+              _hover={{ 
+                bg: "#FFF6FF", 
+                color: "#D200D3",
+                borderColor: "#D200D3",
+                transform: "scale(1.05)",
+                boxShadow: "0 4px 12px rgba(210, 0, 211, 0.3)"
+              }}
               _active={{ bg: "#E2E8F0" }}
               display="flex"
               alignItems="center"
@@ -178,11 +187,10 @@ const AnalyzeConversations= () => {
               aria-label="Search"
               boxShadow="none"
               border="1px solid #E2E8F0"
+              transition="all 0.2s ease"
+              onClick={() => setIsSemanticSearchModalOpen(true)}
             >
-              <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
-                <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2"/>
-                <path d="M15 15L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              <img src="/search.png" alt="Search" width="44" height="44" />
             </Button>
           </HStack>
           <Box display="flex" flexWrap="wrap" gap={2}>
@@ -258,7 +266,9 @@ const AnalyzeConversations= () => {
                 borderRadius="xl"
                 className="ca-border-gray"
                 border="1px solid"
-                bg="#FFFFFF"
+                borderColor={convID === conv.id ? '#D200D3' : '#E2E8F0'}
+                bg={convID === conv.id ? '#FFF6FF' : '#FFFFFF'}
+                boxShadow={convID === conv.id ? '0 2px 8px rgba(210, 0, 211, 0.15)' : 'none'}
                 _hover={{ bg: '#FFF6FF', borderColor: '#D200D3' }}
                 cursor="pointer"
                 onClick={() => {
@@ -281,7 +291,7 @@ const AnalyzeConversations= () => {
                 </Box>
                 <VStack align="start" flex={1} minW={0} gap={1}>
                   <HStack justifyContent="space-between" w="100%">
-                    <Text className="ca-color-primary" fontSize="sm" fontWeight="medium" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" flex={1}>
+                    <Text className="ca-color-primary" fontSize="sm" fontWeight={convID === conv.id ? 'semibold' : 'medium'} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" flex={1}>
                       {conv.title}
                     </Text>
                     <Tooltip content="Learn about context changes." showArrow>
@@ -343,6 +353,10 @@ const AnalyzeConversations= () => {
               if (fetchConversations) fetchConversations(agentId);
             }}
             w="100%"
+            loading={isLoadingConversations}
+            loadingText="Refreshing..."
+            spinner={<Spinner size="sm" color="#0A0807" />}
+            disabled={isLoadingConversations}
           >
             Refresh
           </Button>
@@ -377,6 +391,11 @@ const AnalyzeConversations= () => {
       isOpen={isContextChangeModalOpen}
       onClose={() => setContextChangeModalOpen(false)}
       data={contextChangeModalData ?? mockConversationContextData}
+    />
+    
+    <SemanticSearchModal
+      isOpen={isSemanticSearchModalOpen}
+      onClose={() => setIsSemanticSearchModalOpen(false)}
     />
     </Flex>
 

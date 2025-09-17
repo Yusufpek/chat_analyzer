@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Tabs, TabsList, TabsTrigger, TabsContent } from "@chakra-ui/react";
 import AnalyzeDashboard from './AnalyzeDashboard';
@@ -12,6 +12,14 @@ import { useStore } from '@store/index';
 const AnalyzeMain = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Store selectors
+  const agents = useStore((s: any) => s.agents);
+  const selectedAgentId = useStore((s: any) => s.selectedAgentId);
+  const setSelectedAgentId = useStore((s: any) => s.setSelectedAgentId);
+  const fetchAgents = useStore((s: any) => s.fetchAgents);
+  const authStatus = useStore((s: any) => s.authStatus);
+  const authInitialized = useStore((s: any) => s.authInitialized);
 
   // Determine which tab is active based on current path
   const getActiveTab = () => {
@@ -20,10 +28,39 @@ const AnalyzeMain = () => {
     if (location.pathname.includes('/statistics')) return 'statistics';
     if (location.pathname.includes('/sentiment')) return 'sentiment';
     if (location.pathname.includes('/settings')) return 'settings';
-
     return "dashboard";
     
   };
+
+  // Set last added agent as selected when on dashboard tab and no agent is selected
+  useEffect(() => {
+    const setLastAgentIfNeeded = async () => {
+      // Only run if user is authenticated and we're on dashboard tab
+      if (!authInitialized || authStatus !== 'authenticated') return;
+      if (!location.pathname.includes('/dashboard')) return;
+      
+      // If no agent is selected, try to set the last added agent (most recent)
+      if (!selectedAgentId) {
+        // If agents are already loaded and there are agents, set the last one
+        if (agents && agents.length > 0) {
+          setSelectedAgentId(agents[agents.length - 1].id);
+          return;
+        }
+        
+        // If no agents loaded yet, try to fetch them
+        try {
+          const fetchedAgents = await fetchAgents();
+          if (fetchedAgents && fetchedAgents.length > 0) {
+            setSelectedAgentId(fetchedAgents[fetchedAgents.length - 1].id);
+          }
+        } catch (error) {
+          console.error('Failed to fetch agents for dashboard:', error);
+        }
+      }
+    };
+
+    setLastAgentIfNeeded();
+  }, [authInitialized, authStatus, location.pathname, selectedAgentId, agents, setSelectedAgentId, fetchAgents]);
 
   const handleTabChange = (details: { value: string }) => {
     switch (details.value) {
@@ -48,7 +85,7 @@ const AnalyzeMain = () => {
   return (
     <Box position="relative" bg="#FFF6FF" width="full" height="100%" display="flex" flexDirection="column" overflow="hidden">
       <Tabs.Root 
-        defaultValue={getActiveTab()}
+        value={getActiveTab()}
         onValueChange={handleTabChange}
         width="full"
         height="full"

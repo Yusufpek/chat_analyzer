@@ -143,9 +143,9 @@ export const getSentimentTotals = (details: AgentDetailsContent | null) => {
     positiveCombined: combinedPositive,
     negativeCombined: combinedNegative,
     superPositivePct: pct(superPositive),
-    positivePct: pct(combinedPositive),
+    positivePct: pct(positive),
     neutralPct: pct(neutral),
-    negativePct: pct(combinedNegative),
+    negativePct: pct(negative),
     superNegativePct: pct(superNegative),
   };
 };

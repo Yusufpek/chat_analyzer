@@ -44,6 +44,9 @@ export interface AgentsSliceState {
 	// Jotform specific functions
 	fetchJotformAgents: () => Promise<JotformAgentsResponse | null>;
 	syncJotformAgents: (agents: AgentItem[]) => Promise<void>;
+
+	// Analyze/Qdrant
+	qdrantSearch: (agentId: string, query: string) => Promise<any[]>;
 }
 
 
@@ -232,6 +235,19 @@ export const createAgentsSlice = (set: SetState, get: GetState): AgentsSliceStat
 			console.error('Failed to sync Jotform agents:', error);
 			throw error;
 		}
+	},
+
+	// Analyze/Qdrant
+	qdrantSearch: async (agentId: string, query: string) => {
+		const trimmed = (query || '').trim();
+		if (!trimmed) return [];
+		if (!agentId) throw new Error('Agent ID required');
+		const data = await request('/api/analyze/qdrant_search/', {
+			method: 'POST',
+			body: JSON.stringify({ agent_id: agentId, query: trimmed })
+		});
+		const content = Array.isArray((data as any)?.content) ? (data as any).content : [];
+		return content;
 	},
 	
 	fetchAgentDetails: async (agentId: string) => {

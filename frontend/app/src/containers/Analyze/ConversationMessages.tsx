@@ -1,9 +1,12 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Box, VStack, HStack, Text, Avatar } from '@chakra-ui/react';
 
 import { useStore } from '@store/index';  
 
 const ConversationMessages = () => {
+  const location = useLocation();
+  const highlightText: string | undefined = (location.state as any)?.highlightText;
   const agentId = useStore((s: any) => s.selectedAgentId);
   const convID = useStore((s: any) => s.selectedConversationId);
 
@@ -12,6 +15,10 @@ const ConversationMessages = () => {
   const isLoadingMessages = useStore((s: any) => s.isLoadingMessages);
   const agents = useStore((s: any) => s.agents);
   const user = useStore((s: any) => s.user);
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const messages = (convID && messagesByConversation?.[convID]) || [];
 
@@ -38,12 +45,27 @@ const ConversationMessages = () => {
     return [...list].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   }, [messages]);
 
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [sortedMessages.length]);
+
+  useEffect(() => {
+    if (!highlightText) return;
+    // Find the first message containing the highlight text
+    const target = sortedMessages.find((m: any) => typeof m?.content === 'string' && m.content.includes(highlightText));
+    if (target && target.id) {
+      setHighlightedId(String(target.id));
+      const el = messageRefs.current[String(target.id)];
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      // Remove highlight after a delay
+      const t = setTimeout(() => setHighlightedId(null), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [highlightText, sortedMessages]);
 
   return (
     <Box flex={1} bg="#FFF6FF" display="flex" flexDirection="column" height="100%" overflow="auto">
@@ -62,7 +84,7 @@ const ConversationMessages = () => {
           {sortedMessages.map((msg: any) => {
             const isUser = msg.sender_type === 'user';
             return (
-              <HStack key={msg.id} justify={isUser ? 'flex-end' : 'flex-start'} align="flex-end" gap={3}>
+              <HStack key={msg.id} justify={isUser ? 'flex-end' : 'flex-start'} align="flex-end" gap={3} ref={(el) => { messageRefs.current[String(msg.id)] = el; }}>
                 {!isUser && (
                   <Avatar.Root w="36px" h="36px" borderRadius="full" overflow="hidden" flexShrink={0} transform="translateY(2px)">
                     <Avatar.Fallback bg="#621CB1" color="white">A</Avatar.Fallback>
@@ -71,14 +93,14 @@ const ConversationMessages = () => {
                 )}
                 <Box
                   maxW="70%"
-                  bg={isUser ? '#FFD8FF' : '#FFFFFF'}
+                  bg={highlightedId === String(msg.id) ? '#FFF3B0' : (isUser ? '#FFD8FF' : '#FFFFFF')}
                   color={isUser ? '#0A0807' : '#0A0807'}
                   borderRadius="12px"
                   className={isUser ? 'ca-border-tertiary' : 'ca-border-gray'}
                   border="1px solid"
                   px={4}
                   py={3}
-                  boxShadow={isUser ? '0 4px 12px rgba(210, 0, 211, 0.15)' : '0 2px 8px rgba(0,0,0,0.05)'}
+                  boxShadow={highlightedId === String(msg.id) ? '0 0 0 3px rgba(255, 215, 0, 0.6)' : (isUser ? '0 4px 12px rgba(210, 0, 211, 0.15)' : '0 2px 8px rgba(0,0,0,0.05)')}
                 >
                   <Text fontSize="sm" className="ca-color-primary" whiteSpace="pre-wrap">
                     {msg.content}

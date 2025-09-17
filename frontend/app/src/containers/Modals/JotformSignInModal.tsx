@@ -7,20 +7,11 @@ import { AgentItem, JotformAgentsResponse } from '@store/agents';
 import GenericModal from '@components/ui/Modal';
 
 //TODO
-     // conversation scrollable and maxheight hem liste hemde conversation için
-     // landing agent varsa direk analayze dashboard gelsin
 
-// dashboardda frequent keywrod graphi ekle. tıklayınca conversation sayfasına git
-     // dashboarda sentiment grfinpini kaldır
-     // context change conversation sayfasında title yanında view i butonu ekle. basınca modal açılsın ve context overall ve timeline
-//keyword ile arama
+// most frequent keyword basınca o mesaja gtisin.
 
-     // bütün conversatiolar varsa all seçili olsun 
 
-      //statistics sayfasında conv id yerine title
-
-// label hoverda genişle çarpı çıkar delete
-
+// search at conversation, // keyword ile arama
 
 
 type JotformSignInModalProps = {
